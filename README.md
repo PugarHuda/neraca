@@ -68,6 +68,7 @@ pytest                            # 4 tests, incl. the deletion test
 
 # the storefronts (see .env.example for credentials):
 uvicorn neraca.server:app --port 8402      # x402 paywall: GET /risk/<addr>
+python -m neraca.server                    # the buyer: walks the 402 and pays (NERACA_BUYER_KEY)
 python -m neraca.onchain b20               # live B20 read, Base mainnet, free
 python -m neraca.onchain wallet            # CDP wallets + Base Sepolia faucet
 python -m neraca.onchain stake <addr> 1.0  # stake a guarantee (memory-gated)
