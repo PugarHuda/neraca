@@ -75,7 +75,7 @@ def seller() -> None:
             # the bureau checks its memory before accepting the client at all
             verdict = makelar.decide(job.client_address, float(getattr(job, "price", 0) or 1))
             if verdict["verdict"] == "DECLINE":
-                print(f"job {job.id}: declining client {job.client_address} — remembered: "
+                print(f"job {job.id}: declining client {job.client_address} - remembered: "
                       f"{verdict['reasons']}")
                 return
             job.accept(reason="accepted by NERACA bureau")
@@ -91,7 +91,7 @@ def seller() -> None:
             print(f"job {job.id}: delivered risk report on {target}")
 
     acp = VirtualsACP(_contract_client("SELLER"), on_new_task=on_new_task)
-    print(f"NERACA ACP seller live as {acp.wallet_address} — waiting for jobs")
+    print(f"NERACA ACP seller live as {acp.wallet_address} - waiting for jobs")
     threading.Event().wait()  # socket callbacks drive everything
 
 

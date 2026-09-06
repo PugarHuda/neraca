@@ -81,7 +81,7 @@ async def pay(url: str) -> None:
     async with x402HttpxClient(client) as http:
         r = await http.get(url)
         if r.status_code == 402:
-            raise SystemExit(f"payment not settled — is {account.address} funded with "
+            raise SystemExit(f"payment not settled - is {account.address} funded with "
                              f"Base Sepolia test USDC? server said: {r.text[:200]}")
         r.raise_for_status()
         receipt = r.headers.get("x-payment-response") or r.headers.get("payment-response")

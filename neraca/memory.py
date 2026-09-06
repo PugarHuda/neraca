@@ -36,7 +36,7 @@ def db_path() -> str:
 def client() -> MemoryClient:
     if os.environ.get("NERACA_MEMORY_DISABLED"):
         raise SystemExit(
-            "NERACA: memory layer disabled — no memory, no bureau.\n"
+            "NERACA: memory layer disabled - no memory, no bureau.\n"
             "The Sibyl Memory layer is load-bearing; there is nothing to fall back to."
         )
     return MemoryClient.local(db_path())

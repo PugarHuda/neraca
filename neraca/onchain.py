@@ -66,7 +66,7 @@ async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
     verdict = (state or {}).get("body", {}).get("verdict")
     if verdict != "APPROVE_WITH_GUARANTEE":
         raise SystemExit(f"no open APPROVE_WITH_GUARANTEE negotiation for {counterparty} "
-                         f"(found: {verdict}) — the stake is priced by memory, not typed by hand")
+                         f"(found: {verdict}) - the stake is priced by memory, not typed by hand")
 
     amount = int(amount_usdc * 1_000_000)
     async with CdpClient() as cdp:

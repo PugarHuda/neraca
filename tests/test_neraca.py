@@ -59,3 +59,19 @@ def test_memory_is_load_bearing(tmp_path, monkeypatch):
     from neraca.memory import client
     with pytest.raises(SystemExit):
         client()
+
+
+def test_verdict_changes_when_the_dispute_lands(m):
+    """The demo's core claim: same question, different answer, because memory grew."""
+    from neraca import analis, makelar, pengamat
+    pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
+    analis.run(m)
+    before = makelar.decide(pengamat.KLIEN_B, 50, m)
+    assert before["verdict"] == makelar.APPROVE_WITH_GUARANTEE
+
+    assert pengamat.observe([pengamat.dispute_event()], m) == 1
+    analis.run(m)
+    after = makelar.decide(pengamat.KLIEN_B, 50, m)
+    assert after["verdict"] == makelar.DECLINE
+    assert after["score"] < before["score"]
+    assert "rejected delivered job sim-b1" in after["reasons"]

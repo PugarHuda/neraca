@@ -10,7 +10,10 @@ from .memory import client, get_rubric, job_events
 def main() -> None:
     ap = argparse.ArgumentParser(prog="neraca", description="Trust bureau for the agent economy")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("seed", help="journal the simulated scenario (KLIEN-A good, KLIEN-B disputes)")
+    p = sub.add_parser("seed", help="journal the simulated scenario (KLIEN-A good, KLIEN-B disputes)")
+    p.add_argument("--before-dispute", action="store_true",
+                   help="stop one event short of KLIEN-B's rejection, to land it live")
+    sub.add_parser("witness", help="PENGAMAT witnesses KLIEN-B's rejection, live")
     sub.add_parser("analis", help="rebuild reputation profiles from the journal")
     p = sub.add_parser("ask", help="should I deal with this counterparty?")
     p.add_argument("counterparty")
@@ -24,8 +27,12 @@ def main() -> None:
     get_rubric(m)  # seed REFERENCE rubric on first touch
 
     if args.cmd == "seed":
-        n = pengamat.observe(pengamat.sim_scenario(), m)
+        n = pengamat.observe(pengamat.sim_scenario(not args.before_dispute), m)
         print(f"journaled {n} new observations")
+    elif args.cmd == "witness":
+        n = pengamat.observe([pengamat.dispute_event()], m)
+        print(f"PENGAMAT journaled {n} new observation "
+              f"(REJECTED sim-b1) - rerun `analis` to see the score move")
     elif args.cmd == "analis":
         profiles = analis.run(m)
         for addr, p in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):

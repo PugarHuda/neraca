@@ -64,7 +64,13 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #  -> DECLINE, reasons: ["rejected delivered job sim-b1"]  <- recalled, not computed
 
 python -m neraca report <addr>   # the remembered evidence behind any verdict
-pytest                            # 4 tests, incl. the deletion test
+pytest                            # 5 tests, incl. the deletion test
+
+# same question, different answer, because the journal grew:
+python -m neraca seed --before-dispute && python -m neraca analis
+python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # APPROVE_WITH_GUARANTEE
+python -m neraca witness && python -m neraca analis
+python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # DECLINE
 
 # the storefronts (see .env.example for credentials):
 uvicorn neraca.server:app --port 8402      # x402 paywall: GET /risk/<addr>
@@ -77,6 +83,9 @@ python -m neraca.acp seller                # serve ACP jobs + observe live
 
 Fresh-session recall: run `seed` + `analis`, close the terminal, open a new
 one, and `ask` — the verdict cites events this process never saw.
+
+The recording runbook, with the exact command order and what each beat proves,
+is in [`docs/DEMO.md`](docs/DEMO.md).
 
 ## Prior work declaration
 
