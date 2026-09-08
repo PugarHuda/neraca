@@ -64,6 +64,8 @@ python -m neraca.onchain b20              # Apple Inc. / AAPLc / totalSupply
 # x402 storefront (terminal A), then the buyer (terminal B):
 uvicorn neraca.server:app --port 8402
 curl -i http://127.0.0.1:8402/risk/0xKLIENB000000000000000000000000000000000B?budget=50   # 402
+# make the price legible on camera - x402 v2 carries it in a base64 header:
+curl -sD- -o/dev/null 'http://127.0.0.1:8402/risk/0xKLIENB000000000000000000000000000000000B?budget=50' \n  | grep -i '^payment-required' | cut -d' ' -f2 | base64 -d | python -m json.tool
 python -m neraca.server                   # walks the 402, pays, prints the answer + receipt
 
 # guarantee stake — memory-gated, refuses without an open APPROVE_WITH_GUARANTEE:
