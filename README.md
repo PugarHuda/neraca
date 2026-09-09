@@ -56,6 +56,8 @@ files (WARM), doctrine (REFERENCE), open negotiations (HOT), and a morgue
 ```bash
 python -m venv .venv && .venv/Scripts/pip install -r requirements.txt   # Windows
 # .venv/bin/pip on Linux/macOS
+# Windows: clone somewhere short (C:\neraca). cdp-sdk ships an 88-char filename,
+# and a deep clone path silently installs a broken `cdp` past MAX_PATH.
 
 # the core loop (no keys, no network needed):
 python -m neraca seed      # PENGAMAT journals the demo scenario (COLD)
