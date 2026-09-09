@@ -73,13 +73,11 @@ python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50   # 
 python -m neraca.onchain stake 0xKLIENA000000000000000000000000000000000A 1.0 # Basescan link
 ```
 
-Show the Basescan link resolving in a browser. Try the stake against KLIEN-B
-first if there is time — it refuses, because the stake is priced by memory,
-not typed by hand.
+Show the Basescan link resolving in a browser. Fire the stake at KLIEN-B first — it refuses before it ever reaches a CDP key, because the memory gate runs first: the stake is priced by memory, not typed by hand. That refusal needs no credentials, so record it even if the keys never land.
 
 ## 6 · Close (15s)
 
-Three agents, one shared memory, no other channel. `pytest` — 5 tests, one of
+Three agents, one shared memory, no other channel. `pytest` — 6 tests, one of
 which is the deletion test judges will run themselves.
 
 ## Credential checklist (do this before recording)
@@ -91,5 +89,5 @@ which is the deletion test judges will run themselves.
 | `NERACA_BUYER_KEY` | any Base Sepolia key, faucet it with the CDP creds | the paying client in step 5 |
 | ACP entity IDs + whitelisted key | app.virtuals.io/acp/new | `python -m neraca.acp seller` (second partner multiplier) |
 
-Steps 1–4 and the B20 read need **no credentials at all** — record those first
+Steps 1–4, the B20 read, the 402, and the stake refusal need **no credentials at all** — record those first
 so a failed key never costs you the gate evidence.

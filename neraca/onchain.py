@@ -56,10 +56,7 @@ async def wallet() -> dict:
 
 async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
     """Send the guarantee stake (USDC, Base Sepolia) and journal it."""
-    _require_creds()
-    from cdp import CdpClient
-    from cdp.evm_transaction_types import TransactionRequestEIP1559
-
+    # memory gate first, on purpose: the refusal is demonstrable with no keys at all
     from .memory import client
     m = client()
     state = m.get_state(f"negotiation:{counterparty}")
@@ -67,6 +64,10 @@ async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
     if verdict != "APPROVE_WITH_GUARANTEE":
         raise SystemExit(f"no open APPROVE_WITH_GUARANTEE negotiation for {counterparty} "
                          f"(found: {verdict}) - the stake is priced by memory, not typed by hand")
+
+    _require_creds()
+    from cdp import CdpClient
+    from cdp.evm_transaction_types import TransactionRequestEIP1559
 
     amount = int(amount_usdc * 1_000_000)
     async with CdpClient() as cdp:

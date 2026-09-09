@@ -68,7 +68,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 
 - [x] Public repo, MIT, real commit history
 - [x] README points to where memory is written/read (top section)
-- [x] Deletion test in the suite (5/5 passing)
+- [x] Deletion test in the suite (6/6 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
 - [ ] CDP keys → `onchain wallet`, faucet, `onchain stake` (Basescan link)

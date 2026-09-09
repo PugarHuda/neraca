@@ -64,9 +64,11 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #  -> DECLINE, reasons: ["rejected delivered job sim-b1"]  <- recalled, not computed
 
 python -m neraca report <addr>   # the remembered evidence behind any verdict
-pytest                            # 5 tests, incl. the deletion test
+pytest                            # 6 tests, incl. the deletion test
 
-# same question, different answer, because the journal grew:
+# same question, different answer, because the journal grew.
+# the journal is append-only, so this act needs a fresh one:
+rm -rf data/                       # PowerShell: Remove-Item -Recurse -Force data
 python -m neraca seed --before-dispute && python -m neraca analis
 python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # APPROVE_WITH_GUARANTEE
 python -m neraca witness && python -m neraca analis

@@ -75,3 +75,21 @@ def test_verdict_changes_when_the_dispute_lands(m):
     assert after["verdict"] == makelar.DECLINE
     assert after["score"] < before["score"]
     assert "rejected delivered job sim-b1" in after["reasons"]
+
+
+def test_stake_refuses_without_an_approved_negotiation(m, monkeypatch):
+    """Real USDC is priced by memory: no open guarantee in HOT, no stake.
+
+    Runs with no CDP credentials on purpose — the memory gate must fire first,
+    so anyone can reproduce the refusal without keys.
+    """
+    import asyncio
+
+    from neraca import analis, makelar, onchain, pengamat
+    for k in ("CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"):
+        monkeypatch.delenv(k, raising=False)
+    analis.run(seeded(m))
+    assert makelar.decide(pengamat.KLIEN_B, 50, m)["verdict"] == makelar.DECLINE
+
+    with pytest.raises(SystemExit, match="priced by memory"):
+        asyncio.run(onchain.stake_guarantee(pengamat.KLIEN_B, 1.0))
