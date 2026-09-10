@@ -80,10 +80,12 @@ def run(m=None) -> dict[str, dict]:
     return profiles
 
 
-def refresh(m, seen: int) -> tuple[int, dict | None]:
-    """One watch tick: rebuild profiles only if the journal actually grew."""
-    n = len(job_events(m)) + len(settlement_events(m))
-    return (n, None) if n == seen else (n, run(m))
+def refresh(m, seen) -> tuple[tuple, dict | None]:
+    """One watch tick: rebuild only if memory actually moved - a new event in
+    the journal, or a new version of the doctrine. `reflect` in one process
+    revises the rubric; the watcher in another rescored everyone under it."""
+    mark = (len(job_events(m)) + len(settlement_events(m)), get_rubric(m).get("version", 1))
+    return (mark, None) if mark == seen else (mark, run(m))
 
 
 def watch(m=None, interval: float = 2.0) -> None:
@@ -95,14 +97,15 @@ def watch(m=None, interval: float = 2.0) -> None:
     """
     # ponytail: polls; swap for a memory change-feed if Sibyl grows one
     m = m or client()
-    seen = -1
+    seen = None
     print(f"ANALIS watching the journal every {interval}s - Ctrl-C to stop", flush=True)
     try:
         while True:
             seen, profiles = refresh(m, seen)
             if profiles:  # empty journal: nothing to announce yet
                 stamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
-                print(f"[{stamp}] journal grew to {seen} events - profiles rebuilt", flush=True)
+                events, version = seen
+                print(f"[{stamp}] memory moved: {events} events, rubric v{version} - profiles rebuilt", flush=True)
                 for addr, prof in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):
                     print(f"   {prof['score']:>3}  {addr}", flush=True)
             time.sleep(interval)

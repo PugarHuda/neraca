@@ -23,6 +23,7 @@ import os
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
+from x402.extensions.bazaar import declare_discovery_extension
 from x402.http import HTTPFacilitatorClient
 from x402.http.middleware.fastapi import payment_middleware
 from x402.http.types import HTTPRequestContext
@@ -58,6 +59,16 @@ def price_by_memory(ctx: HTTPRequestContext) -> str:
     return f"${quote(_counterparty(ctx.path)):.2f}"
 
 
+# x402 Bazaar: the facilitator indexes endpoints that declare themselves, so
+# any x402 client can discover the bureau without being told about it.
+_discovery = declare_discovery_extension(
+    input={"budget": "50"},
+    input_schema={"properties": {"budget": {"type": "string", "description": "USDC you intend to put at risk"}},
+                  "required": []},
+    path_params_schema={"properties": {"counterparty": {"type": "string", "description": "EVM address of the agent you are about to deal with"}},
+                        "required": ["counterparty"]},
+)
+
 routes = {
     "GET /risk/*": {
         "accepts": {
@@ -67,6 +78,7 @@ routes = {
             "network": NETWORK,
         },
         "description": "Memory-backed counterparty risk decision, priced by memory",
+        "extensions": _discovery,
     }
 }
 

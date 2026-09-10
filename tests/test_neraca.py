@@ -104,15 +104,25 @@ def test_analis_watch_reacts_to_another_process(m):
     from neraca import analis, pengamat
     pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
 
-    seen, profiles = analis.refresh(m, -1)
-    assert profiles is not None and seen == 27
+    seen, profiles = analis.refresh(m, None)
+    assert profiles is not None and seen == (27, 1)
     before = profiles[pengamat.KLIEN_B]["score"]
 
-    assert analis.refresh(m, seen) == (27, None)      # journal quiet, no rebuild
+    assert analis.refresh(m, seen) == ((27, 1), None)   # memory quiet, no rebuild
 
-    pengamat.observe([pengamat.dispute_event()], m)   # "another process" writes
+    pengamat.observe([pengamat.dispute_event()], m)     # "another process" writes
     seen, profiles = analis.refresh(m, seen)
-    assert seen == 28 and profiles[pengamat.KLIEN_B]["score"] < before
+    assert seen == (28, 1) and profiles[pengamat.KLIEN_B]["score"] < before
+
+    from neraca import makelar
+    makelar.decide(pengamat.KLIEN_B, 50, m)             # a verdict to grade...
+    analis.reflect(m)                                    # ...graded: nothing after it yet, doctrine holds
+    assert analis.refresh(m, seen) == ((28, 1), None)
+    pengamat.observe(pengamat.sim_scenario(), m)         # (no-op: all seen)
+    # now a verdict that turns out wrong, in "another process": doctrine moves, watcher rescores
+    m.set_reference("scoring-rubric", {**analis.get_rubric(m), "dispute_penalty": 30, "version": 2})
+    seen, profiles = analis.refresh(m, seen)
+    assert seen == (28, 2) and profiles[pengamat.KLIEN_B]["score"] == 20
 
 
 def test_acp_phases_land_in_the_journal(m):
@@ -196,7 +206,8 @@ def test_chain_logs_become_journal_events(m):
         log({"jobId": 13, "oldPhase": 0, "newPhase": 99}, "ee" * 32),  # unknown, dropped
     ]
     lookup = {7: ("0xC1", "0xP1", None), 9: ("0xC9", "0xP9", 12.5)}.get
-    events = pengamat.chain_logs_to_events(created, phases, lookup)
+    events = pengamat.chain_logs_to_events(created, phases, lookup, budgets={7: 3.25})
+    assert events[0]["budget"] == 3.25 and events[1]["budget"] == 3.25   # BudgetSet rides on the job
 
     assert [(e["job_id"], e["phase"]) for e in events] == [
         ("acp-7", "CREATED"), ("acp-7", "REJECTED"), ("acp-9", "COMPLETED")]
@@ -360,3 +371,33 @@ def test_addresses_have_one_spelling(m):
     assert len(makelar.evidence(real.lower(), m)) == 1
     assert quote(real.lower(), m) == quote(real, m) == 0.02
     assert makelar.decide(pengamat.KLIEN_B.lower(), 50, m)["verdict"] == makelar.NO_HISTORY  # labels are literal
+
+
+def test_mcp_server_answers_from_memory(m):
+    """Another agent asks the bureau over MCP; the answer is the same memory read."""
+    import asyncio
+    import json
+    import os
+    import sys
+
+    from mcp.client.session import ClientSession
+    from mcp.client.stdio import StdioServerParameters, stdio_client
+    from neraca import analis, pengamat
+
+    analis.run(seeded(m))
+    params = StdioServerParameters(command=sys.executable, args=["-m", "neraca.mcp_server"],
+                                   env={**os.environ, "NERACA_DB": os.environ["NERACA_DB"]})
+
+    async def go():
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as s:
+                await s.initialize()
+                tools = {t.name for t in (await s.list_tools()).tools}
+                res = await s.call_tool("ask", {"counterparty": pengamat.KLIEN_B, "budget": 50})
+                return tools, res
+
+    tools, res = asyncio.run(go())
+    assert {"ask", "quote", "report", "search"} <= tools
+    body = res.structured_content or json.loads(res.content[0].text)
+    body = body.get("result", body)
+    assert body["verdict"] == "DECLINE" and "rejected delivered job sim-b1" in body["reasons"]

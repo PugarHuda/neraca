@@ -66,7 +66,8 @@ def observe(events: list[dict], m=None) -> int:
 
 
 def chain_logs_to_events(created: list, phases: list, lookup,
-                         new_memos: list = (), signed: list = (), memo_job=None) -> list[dict]:
+                         new_memos: list = (), signed: list = (), memo_job=None,
+                         budgets: dict | None = None) -> list[dict]:
     """Turn raw JobManager + MemoManager logs into journal observations.
 
     Most of an ACP job's life happens in memos, not phase updates: a memo is
@@ -81,6 +82,7 @@ def chain_logs_to_events(created: list, phases: list, lookup,
     parties: dict[int, tuple[str, str, float | None]] = {}
     events: list[dict] = []
     seen: set[tuple[str, str]] = set()
+    budgets = budgets or {}   # jobId -> USDC, from BudgetSet logs
 
     def emit(job_id: int, phase: str, tx) -> None:
         if phase is None or phase == "CREATED" or (job_id, phase) in seen:
@@ -95,9 +97,10 @@ def chain_logs_to_events(created: list, phases: list, lookup,
 
     for log in created:
         a = log["args"]
-        parties[a["jobId"]] = (a["client"], a["provider"], None)
+        budget = budgets.get(a["jobId"])
+        parties[a["jobId"]] = (a["client"], a["provider"], budget)
         events.append(dict(job_id=f"acp-{a['jobId']}", phase="CREATED",
-                           client_addr=a["client"], provider=a["provider"],
+                           client_addr=a["client"], provider=a["provider"], budget=budget,
                            tx=_hex(log["transactionHash"])))
     for log in phases:
         a = log["args"]
@@ -212,15 +215,17 @@ def observe_chain(m=None, lookback: int = 20000, w3=None) -> dict:
         except Exception:
             return None
 
-    created, phases, new_memos, signed = [], [], [], []
+    created, phases, new_memos, signed, budgets = [], [], [], [], {}
     for s in range(start, head + 1, LOG_CHUNK):
         e = min(s + LOG_CHUNK - 1, head)
         created += jm.events.JobCreated().get_logs(from_block=s, to_block=e)
         phases += jm.events.JobPhaseUpdated().get_logs(from_block=s, to_block=e)
         new_memos += mm.events.NewMemo().get_logs(from_block=s, to_block=e)
         signed += mm.events.MemoSigned().get_logs(from_block=s, to_block=e)
+        for b in jm.events.BudgetSet().get_logs(from_block=s, to_block=e):
+            budgets[b["args"]["jobId"]] = b["args"]["newBudget"] / 1_000_000  # USDC has 6 decimals
 
-    events = chain_logs_to_events(created, phases, lookup, new_memos, signed, memo_job)
+    events = chain_logs_to_events(created, phases, lookup, new_memos, signed, memo_job, budgets)
     written = observe(events, m)
     m.set_state(CHAIN_CURSOR, {"block": head, "job_manager": jm.address, "memo_manager": mm.address})
     return {"from_block": start, "to_block": head, "job_created": len(created),
