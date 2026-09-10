@@ -15,8 +15,23 @@ import sys
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode
 
+# The platform's SQLite predates the FTS5 tokenizer Sibyl's store uses: reads
+# work, the first write dies with "error in tokenizer constructor". Swap in
+# a modern build before anything imports sqlite3.
+try:
+    import pysqlite3  # noqa: F401
+    sys.modules["sqlite3"] = sys.modules["pysqlite3"]
+except ImportError:
+    pass
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+# The Sibyl client keeps a small tier cache under ~/.sibyl-memory; a Function's
+# home directory is read-only, /tmp is the only writable disk.
+HOME = Path("/tmp/neraca-home")
+HOME.mkdir(parents=True, exist_ok=True)
+os.environ["HOME"] = str(HOME)
 
 SNAPSHOT = ROOT / "api" / "snapshot.db"
 LIVE = Path("/tmp/neraca.db")
@@ -47,7 +62,12 @@ class _VercelPath:
             original = "/" + next((v for k, v in pairs if k == "__path"), "").lstrip("/")
             query = urlencode([(k, v) for k, v in pairs if k != "__path"]).encode()
             scope = dict(scope, path=original, raw_path=original.encode(), root_path="", query_string=query)
-        await self.inner(scope, receive, send)
+        try:
+            await self.inner(scope, receive, send)
+        except Exception:  # make the traceback land in `vercel logs`, then let it fail
+            import traceback
+            traceback.print_exc()
+            raise
 
 
 app = _VercelPath(_app)

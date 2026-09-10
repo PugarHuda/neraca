@@ -71,6 +71,7 @@ bureau exits immediately — *no memory, no bureau*. There is no fallback path.
 | ERC-8004 identity: NERACA registered as agent **#9215** | [`0x616df8a0…`](https://sepolia.basescan.org/tx/0x616df8a005aef6f4606eca64cb96bf974ce7cd04d861898b2358dcdad9a5d473) |
 | ERC-8004 identity: demo counterparty as agent **#9216**, different owner | [`0x6de8ed69…`](https://sepolia.basescan.org/tx/0x6de8ed6900c90fa19f2c80e3093b79c9f211e83853dec92a6b95f409915318af) |
 | ERC-8004 `giveFeedback`: NERACA's memory-backed score (52, APPROVE_WITH_GUARANTEE) published as portable reputation; `getSummary` reads it back | [`0x7c920e2d…`](https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8dc3915c7dda9ca6cfe15d1d8fe609a1615c) |
+| x402 settlement against the **public Vercel endpoint**: a real agent (aixbt) priced by memory at $0.02, paid, answered, and journaled by the deployment | [`0x8f0beeb2…`](https://sepolia.basescan.org/tx/0x8f0beeb23cd67fec44f744358ad24023e7f49fcfd80a5e04db4bea6bfcc1a591) |
 | Live reads on Base **mainnet**: ACP JobManager `0x9c690c26…`, MemoManager `0x9c6C5A71…`, B20 tokenized stock AAPLc | `python -m neraca chain`, `python -m neraca.onchain b20` |
 
 The stake needs an open APPROVE_WITH_GUARANTEE in HOT memory. The ERC-8004
@@ -86,6 +87,16 @@ provider needs an ACP registration (`.env.example`).
 **ERC-8004 Trustless Agents** — NERACA's verdicts leave the bureau: registered
 in the Identity Registry, published to the Reputation Registry, readable by
 any agent that speaks the standard.
+
+**MCP** — [`mcp_server.py`](neraca/mcp_server.py): NERACA is an MCP server.
+Claude Code, Cursor, or any agent adds one stdio server and gets `ask`,
+`quote`, `report`, `search` as tools — every one a read of Sibyl Memory.
+`claude mcp add neraca -- python -m neraca.mcp_server`. The suite spawns the
+real server and round-trips a verdict through a real MCP client.
+
+**x402 Bazaar** — the `/risk` route declares a discovery extension in its 402,
+so the facilitator can index the bureau and any x402 client can find it
+unprompted.
 
 **Live on Vercel:** https://neraca-psi.vercel.app — the storefront as a public
 window into the bureau's memory. A Vercel Function has no durable disk, so
@@ -118,7 +129,7 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 
 python -m neraca report <addr>          # the remembered evidence behind any verdict
 python -m neraca search rejected        # FTS5 across every tier
-pytest                                  # 17 tests, incl. the deletion test
+pytest                                  # 20 tests, incl. the deletion test
 
 # three processes coordinating with memory as the only wire.
 # the journal is append-only, so this act needs a fresh one:
@@ -159,6 +170,7 @@ python -m neraca.onchain stake <addr> 1.0  # stake a guarantee (memory-gated)
 python -m neraca.onchain identity          # register NERACA as an ERC-8004 agent
 python -m neraca.onchain feedback <agentId> # publish a memory-backed verdict on-chain (memory-gated)
 python -m neraca.acp seller                # serve ACP jobs + observe live
+python -m neraca.mcp_server                # NERACA as an MCP server (stdio): ask/quote/report/search
 ```
 
 Fresh-session recall: run `seed` + `analis`, close the terminal, open a new

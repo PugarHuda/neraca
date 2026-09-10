@@ -164,9 +164,17 @@ python -m neraca.onchain feedback 9216    # giveFeedback(52, APPROVE_WITH_GUARAN
 
 Rehearsal proof: https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8dc3915c7dda9ca6cfe15d1d8fe609a1615c
 
+## 8b · Another agent asks the bureau: MCP (20s, extra)
+
+```bash
+claude mcp add neraca -- python -m neraca.mcp_server     # or any MCP client
+# then, inside Claude Code: "ask neraca about 0xKLIENB...B with budget 50"
+#   -> the same DECLINE, the same reasons, read from the same memory
+```
+
 ## 9 · Close (10s)
 
-Three agents, one shared memory, no other channel. `pytest` — 17 tests, one of
+Three agents, one shared memory, no other channel. `pytest` — 20 tests, one of
 which is the deletion test judges will run themselves.
 
 ## Credential checklist (do this before recording)

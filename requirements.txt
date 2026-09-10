@@ -1,4 +1,6 @@
 sibyl-memory-client>=0.8.0
+# serverless Linux ships an SQLite too old for Sibyl's FTS5 tokenizer; bring a modern one
+pysqlite3-binary>=0.5; sys_platform == "linux"
 cdp-sdk>=1.48.1
 virtuals-acp>=0.3.23
 x402[httpx]>=2.22.0

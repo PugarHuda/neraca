@@ -125,7 +125,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 
 - [x] Public repo, MIT, real commit history
 - [x] README points to where memory is written/read (top section)
-- [x] Deletion test in the suite (17/17 passing)
+- [x] Deletion test in the suite (20/20 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
 - [x] Guarantee stake executed on Base Sepolia: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
@@ -134,6 +134,8 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 - [x] ERC-8004: NERACA registered as agent #9215: https://sepolia.basescan.org/tx/0x616df8a005aef6f4606eca64cb96bf974ce7cd04d861898b2358dcdad9a5d473
 - [x] ERC-8004: memory-backed feedback published on agent #9216: https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8dc3915c7dda9ca6cfe15d1d8fe609a1615c
 - [x] Live ACP jobs read off Base mainnet contracts, no registration (`python -m neraca chain`)
+- [x] Public deployment: https://neraca-psi.vercel.app (status page, /quote, 402 on /risk)
+- [x] NERACA as an MCP server (`python -m neraca.mcp_server`), x402 Bazaar discovery declared
 - [ ] ACP agents registered → `neraca.acp seller` (provider side; the observer side needs nothing)
 - [ ] Demo video 2–5 min, recall beat as ONE unedited take with commit hash + clock
 - [ ] 2 public posts
