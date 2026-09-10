@@ -2,7 +2,47 @@
 
 Repo: https://github.com/PugarHuda/neraca (MIT) · Deadline: 2026-09-10 23:59 UTC
 
-## 1 · Memory implementation note (paste into the form)
+## 0 · Build-page fields (team: Ampun Bang) — paste verbatim
+
+**Public repo URL**
+
+    https://github.com/PugarHuda/neraca
+
+**What breaks when memory is deleted?**
+
+> Delete the memory and NERACA does not degrade, it exits: run anything with
+> `NERACA_MEMORY_DISABLED=1` and it returns exit 1 with "no memory, no bureau".
+> The three agents share no queue, no RPC and no file — Sibyl Memory is the only
+> bus between them — so with it gone there is no journal to price risk from, no
+> reputation profile to read, and nothing left to sell.
+
+**Memory walkthrough**
+
+> Persist: every observed agent-to-agent job phase as a COLD event
+> (`write_event`), the reputation profiles ANALIS derives from them as WARM
+> entities carrying full `score_history` (`set_entity`), the scoring rubric
+> itself as a REFERENCE record, and each open negotiation as HOT state.
+>
+> Recall (fresh session): a brand-new process runs
+> `python -m neraca ask 0xKLIENB...B --budget 50`, opens the same Sibyl store,
+> and reads a WARM profile plus COLD journal it never wrote — citing a
+> rejection event by job id from a session that has already been closed.
+>
+> Changes the agent's decision by: one new REJECTED observation moves KLIEN-B
+> from 50 to 25 and flips the verdict from APPROVE_WITH_GUARANTEE (counter 25
+> USDC, 10% premium) to DECLINE citing "rejected delivered job sim-b1"; the
+> on-chain USDC guarantee stake then refuses to fire unless HOT memory still
+> holds an open APPROVE_WITH_GUARANTEE. The code never changed. The memory did.
+
+**Memory primitives** — tick: `recall`, `entities`, `summarization`,
+`consolidation`, `temporal / time-travel`.
+Do **not** tick `semantic search` (no FTS5 query in the code) or `reflection`
+(the bureau judges others, never itself). Judges re-run the repo; a primitive
+you cannot point at is a liability. `temporal` is the thinnest of the five —
+it rests on timestamped `score_history` and the `stale_days` archive cutoff —
+untick it if you want to claim only what is unmistakable.
+
+## 1 · Memory implementation note (longer version, if a field wants prose)
 
 NERACA is a trust bureau for the agent economy. Three agents — PENGAMAT
 (scout), ANALIS (analyst), MAKELAR (broker) — run as separate processes and
