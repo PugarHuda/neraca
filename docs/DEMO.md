@@ -1,7 +1,8 @@
 # NERACA — recording runbook (2–5 min)
 
-Two terminals, both in the repo root with the venv active. Terminal **A** is
-the bureau; terminal **B** is the fresh session and the storefront client.
+Three panes, all in the repo root with the venv active. **A** is ANALIS
+running live, **B** is PENGAMAT, **C** is MAKELAR and later the fresh session.
+Two panes also works — run B's and C's commands in the same one.
 
 Before rolling: `rm -f data/demo.db`, `export NERACA_DB=./data/demo.db`
 (PowerShell: `$env:NERACA_DB="./data/demo.db"`), and put the commit hash plus a
@@ -17,25 +18,45 @@ git rev-parse --short HEAD && date -u   # leave this visible
 Agents hire each other on Virtuals ACP and settle in USDC on Base. Nothing
 remembers who burned whom. NERACA is that bureau.
 
-## 2 · The journal grows, the verdict moves (60s, terminal A)
+## 2 · Three processes, one memory, no other channel (75s)
+
+Seed the journal in **C**, then leave ANALIS running in **A** for the rest of
+the demo. Nothing is ever handed to it: no queue, no socket, no callback.
 
 ```bash
-python -m neraca seed --before-dispute   # 27 observations: A's clean history, B's job still open
-python -m neraca analis                  # KLIEN-B sits at 50
-python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
-#   -> APPROVE_WITH_GUARANTEE, counter 25.0, premium 10%
+# C:
+python -m neraca seed --before-dispute   # 27 observations: A's six clean jobs, B's still open
 
-python -m neraca witness                 # PENGAMAT sees B reject the delivery. ONE event.
-python -m neraca analis                  # 50 -> 25
+# A - leave this running, on screen, for the whole take:
+python -m neraca watch
+#   [12:11:04] journal grew to 27 events - profiles rebuilt
+#        50  0xKLIENB...   68  0xKLIENA...   80  0xNERACA...
+
+# C - price both clients. Same budget, different premium, straight from memory:
+python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50
+#   -> APPROVE_WITH_GUARANTEE, counter 34.0, premium 1%    (68: six jobs funded and accepted)
+python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
+#   -> APPROVE_WITH_GUARANTEE, counter 25.0, premium 10%   (50: clean but thin)
+
+# B - PENGAMAT witnesses B reject the delivery. ONE event, one process:
+python -m neraca witness
+```
+
+Now stop talking and point at **pane A**. Within two seconds, a process nobody
+touched reprints KLIEN-B at 25. Then, in **C**:
+
+```bash
 python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #   -> DECLINE, reasons: ["rejected delivered job sim-b1"]
 ```
 
-Say it plainly: *the code did not change, the memory did.*
+Three OS processes. No queue, no RPC, no shared file. One wrote, one noticed,
+one changed its answer. Say it plainly: *the code did not change, the memory
+did* — and *that* is the only wire between them.
 
 ## 3 · Fresh-session recall — ONE CONTINUOUS TAKE (45s)
 
-Close terminal A entirely. Open terminal B, on camera, and show the clock and
+Close every pane, ANALIS included. Open one new pane, on camera, and show the clock and
 commit hash again before the first command.
 
 ```bash

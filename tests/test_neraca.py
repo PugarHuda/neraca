@@ -29,7 +29,7 @@ def test_analis_scores_dispute_drop(m):
     from neraca import analis, pengamat
     profiles = analis.run(seeded(m))
     a, b = profiles[pengamat.KLIEN_A], profiles[pengamat.KLIEN_B]
-    assert a["score"] == 50            # clients gain nothing, lose nothing when clean
+    assert a["score"] == 68            # 50 + 6 funded-and-accepted jobs x 3
     assert b["score"] == 25            # 50 - 25 dispute penalty
     assert b["disputes_initiated"] == 1
     assert profiles[pengamat.MAKELAR_ADDR]["score"] == 50 + 6 * 5 - 5  # 6 completed, 1 rejection received
@@ -93,3 +93,23 @@ def test_stake_refuses_without_an_approved_negotiation(m, monkeypatch):
 
     with pytest.raises(SystemExit, match="priced by memory"):
         asyncio.run(onchain.stake_guarantee(pengamat.KLIEN_B, 1.0))
+
+
+def test_analis_watch_reacts_to_another_process(m):
+    """Coordination without a channel: ANALIS rebuilds only when the journal grows.
+
+    This is one watch tick. PENGAMAT writing from another process is
+    indistinguishable from the write below — memory is the only bus.
+    """
+    from neraca import analis, pengamat
+    pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
+
+    seen, profiles = analis.refresh(m, -1)
+    assert profiles is not None and seen == 27
+    before = profiles[pengamat.KLIEN_B]["score"]
+
+    assert analis.refresh(m, seen) == (27, None)      # journal quiet, no rebuild
+
+    pengamat.observe([pengamat.dispute_event()], m)   # "another process" writes
+    seen, profiles = analis.refresh(m, seen)
+    assert seen == 28 and profiles[pengamat.KLIEN_B]["score"] < before

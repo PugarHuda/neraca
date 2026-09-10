@@ -22,6 +22,7 @@ the product:
 | `set_entity` / `archive_entity` (WARM/ARCHIVE) | [`neraca/analis.py`](neraca/analis.py) `run` | evolving reputation profiles with full `score_history` |
 | `get_reference` / `set_reference` (REFERENCE) | [`neraca/memory.py`](neraca/memory.py) `get_rubric` | the scoring rubric ANALIS applies — memory, not code |
 | `get_entity` (WARM) | [`neraca/makelar.py`](neraca/makelar.py) `decide` | **the load-bearing read**: no profile, no priced decision |
+| `read_events` in a loop (COLD) | [`neraca/analis.py`](neraca/analis.py) `watch` | **the coordination bus**: ANALIS is handed nothing and reacts to what other processes write |
 | `set_state` / `get_state` (HOT) | [`neraca/makelar.py`](neraca/makelar.py), [`neraca/onchain.py`](neraca/onchain.py) | open negotiations; the stake refuses to fire without one |
 
 **The deletion test:** run anything with `NERACA_MEMORY_DISABLED=1` and the
@@ -34,7 +35,9 @@ A trust bureau *is* institutional memory. Recall alone wouldn't be enough:
 NERACA's answer to the same question changes as the journal grows (one new
 dispute event moves a verdict from APPROVE to DECLINE), its rubric lives in
 the REFERENCE tier so judgment itself is remembered state, and three
-processes coordinate through the same database with no other channel. Sibyl's
+processes coordinate through the same database with no other channel — run
+`python -m neraca watch` in one terminal and `witness` in another to watch that
+happen with nothing passed between them. Sibyl's
 five tiers map one-to-one onto what a bureau needs: a journal (COLD), case
 files (WARM), doctrine (REFERENCE), open negotiations (HOT), and a morgue
 (ARCHIVE).
@@ -66,14 +69,21 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #  -> DECLINE, reasons: ["rejected delivered job sim-b1"]  <- recalled, not computed
 
 python -m neraca report <addr>   # the remembered evidence behind any verdict
-pytest                            # 6 tests, incl. the deletion test
+pytest                            # 7 tests, incl. the deletion test
 
-# same question, different answer, because the journal grew.
+# three processes coordinating with memory as the only wire.
 # the journal is append-only, so this act needs a fresh one:
 rm -rf data/                       # PowerShell: Remove-Item -Recurse -Force data
-python -m neraca seed --before-dispute && python -m neraca analis
-python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # APPROVE_WITH_GUARANTEE
-python -m neraca witness && python -m neraca analis
+python -m neraca seed --before-dispute
+
+# terminal 1 - ANALIS, live. Handed nothing: no queue, no socket, no callback.
+python -m neraca watch
+
+# terminal 2 - same budget, different premium, priced straight from memory:
+python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50  # 68 -> premium 1%
+python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # 50 -> premium 10%
+python -m neraca witness           # PENGAMAT journals ONE adverse event
+#  ... terminal 1 reprints KLIEN-B at 25 on its own, within two seconds ...
 python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50  # DECLINE
 
 # the storefronts (see .env.example for credentials):

@@ -5,6 +5,7 @@ deterministic and idempotent by construction — the same journal always yields
 the same profiles and the same score_history.
 """
 
+import time
 from datetime import datetime, timedelta, timezone
 
 from .memory import client, get_rubric, job_events
@@ -43,6 +44,8 @@ def build_profiles(events: list[dict], rubric: dict) -> dict[str, dict]:
         if x["phase"] == "COMPLETED":
             _bump(profiles, rubric, pr, ts, rubric["completed_bonus"],
                   f"job {job} completed", "jobs_ok")
+            _bump(profiles, rubric, cl, ts, rubric["client_completed_bonus"],
+                  f"funded and accepted job {job}", "jobs_ok")
         elif x["phase"] == "REJECTED":
             _bump(profiles, rubric, cl, ts, -rubric["dispute_penalty"],
                   f"rejected delivered job {job}", "disputes_initiated")
@@ -68,3 +71,30 @@ def run(m=None) -> dict[str, dict]:
         else:
             m.set_entity("agent", addr, p)
     return profiles
+
+
+def refresh(m, seen: int) -> tuple[int, dict | None]:
+    """One watch tick: rebuild profiles only if the journal actually grew."""
+    n = len(job_events(m))
+    return (n, None) if n == seen else (n, run(m))
+
+
+def watch(m=None, interval: float = 2.0) -> None:
+    """ANALIS as its own long-lived process.
+
+    It is handed nothing and told nothing: no queue, no socket, no callback.
+    It watches the COLD journal and reacts when another process writes to it.
+    That is the whole coordination mechanism — memory is the bus.
+    """
+    # ponytail: polls; swap for a memory change-feed if Sibyl grows one
+    m = m or client()
+    seen = -1
+    print(f"ANALIS watching the journal every {interval}s - Ctrl-C to stop", flush=True)
+    while True:
+        seen, profiles = refresh(m, seen)
+        if profiles is not None:
+            stamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
+            print(f"[{stamp}] journal grew to {seen} events - profiles rebuilt", flush=True)
+            for addr, prof in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):
+                print(f"   {prof['score']:>3}  {addr}", flush=True)
+        time.sleep(interval)

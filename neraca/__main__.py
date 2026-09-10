@@ -15,6 +15,7 @@ def main() -> None:
                    help="stop one event short of KLIEN-B's rejection, to land it live")
     sub.add_parser("witness", help="PENGAMAT witnesses KLIEN-B's rejection, live")
     sub.add_parser("analis", help="rebuild reputation profiles from the journal")
+    sub.add_parser("watch", help="ANALIS as a live process: reacts when another process writes")
     p = sub.add_parser("ask", help="should I deal with this counterparty?")
     p.add_argument("counterparty")
     p.add_argument("--budget", type=float, required=True)
@@ -33,6 +34,8 @@ def main() -> None:
         n = pengamat.observe([pengamat.dispute_event()], m)
         print(f"PENGAMAT journaled {n} new observation "
               f"(REJECTED sim-b1) - rerun `analis` to see the score move")
+    elif args.cmd == "watch":
+        analis.watch(m)
     elif args.cmd == "analis":
         profiles = analis.run(m)
         for addr, p in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):

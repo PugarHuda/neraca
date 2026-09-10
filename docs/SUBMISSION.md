@@ -26,7 +26,11 @@ Repo: https://github.com/PugarHuda/neraca (MIT) · Deadline: 2026-09-10 23:59 UT
 > Recall (fresh session): a brand-new process runs
 > `python -m neraca ask 0xKLIENB...B --budget 50`, opens the same Sibyl store,
 > and reads a WARM profile plus COLD journal it never wrote — citing a
-> rejection event by job id from a session that has already been closed.
+> rejection event by job id from a session that has already been closed. The
+> three agents also run concurrently: `python -m neraca watch` leaves ANALIS
+> live with nothing handed to it, and when PENGAMAT writes one event from a
+> separate process it rebuilds every profile on its own. No queue, no RPC, no
+> shared file — memory is the entire bus between them.
 >
 > Changes the agent's decision by: one new REJECTED observation moves KLIEN-B
 > from 50 to 25 and flips the verdict from APPROVE_WITH_GUARANTEE (counter 25
@@ -68,6 +72,12 @@ The memory layer is the bus, the database, and the product.
 1 with "no memory, no bureau". There is no fallback path, and
 `tests/test_neraca.py::test_memory_is_load_bearing` asserts it.
 
+**Coordination, not just recall:** three OS processes share no channel but the
+Sibyl store. Run `python -m neraca watch` in one terminal and
+`python -m neraca witness` in another: ANALIS reacts to a write it was never
+told about, and a third process asking `ask` then gets a different verdict.
+`tests/test_neraca.py::test_analis_watch_reacts_to_another_process` pins it.
+
 **Dynamic storage, not recall:** the same question gets a different answer as
 the journal grows. One live `REJECTED` observation moves KLIEN-B from 50 to 25
 and flips APPROVE_WITH_GUARANTEE to DECLINE — the code never changes, the
@@ -108,7 +118,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 
 - [x] Public repo, MIT, real commit history
 - [x] README points to where memory is written/read (top section)
-- [x] Deletion test in the suite (6/6 passing)
+- [x] Deletion test in the suite (7/7 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
 - [ ] CDP keys → `onchain wallet`, faucet, `onchain stake` (Basescan link)

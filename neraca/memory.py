@@ -16,6 +16,7 @@ RUBRIC_KEY = "scoring-rubric"
 DEFAULT_RUBRIC = {
     "base_score": 50,
     "completed_bonus": 5,           # provider delivered, client accepted
+    "client_completed_bonus": 3,    # client funded and accepted; less risk taken, so trust accrues slower
     "dispute_penalty": 25,          # client rejected delivered work
     "rejection_received_penalty": 5,  # provider whose delivery was rejected
     "failed_penalty": 10,           # provider let the job expire
