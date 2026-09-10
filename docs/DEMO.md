@@ -4,8 +4,10 @@ Three panes, all in the repo root with the venv active. **A** is ANALIS
 running live, **B** is PENGAMAT, **C** is MAKELAR and later the fresh session.
 Two panes also works — run B's and C's commands in the same one.
 
-Before rolling: `rm -f data/demo.db`, `export NERACA_DB=./data/demo.db`
-(PowerShell: `$env:NERACA_DB="./data/demo.db"`), and put the commit hash plus a
+Before rolling: `rm -f data/demo.db*` (the `*` matters - a stale SQLite WAL
+file can resurrect the old journal), `export NERACA_DB=./data/demo.db`
+(PowerShell: `Remove-Item data\demo.db* -Force; $env:NERACA_DB="./data/demo.db"`),
+and put the commit hash plus a
 live clock on screen — the gate requires the recall beat to be **one
 continuous unedited segment** carrying a timestamp or commit hash.
 
