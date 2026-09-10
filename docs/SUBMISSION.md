@@ -136,6 +136,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 - [x] Live ACP jobs read off Base mainnet contracts, no registration (`python -m neraca chain`)
 - [x] Public deployment: https://neraca-psi.vercel.app (landing with a live quote form, /registry, /quote, 402 on /risk) — designed with Impeccable, reviewed and documented
 - [x] NERACA as an MCP server (`python -m neraca.mcp_server`), x402 Bazaar discovery declared
+- [x] Web surfaces designed with Impeccable (PRODUCT.md, DESIGN.md, surface briefs), both scored ship by its finish reviewer; Playwright E2E on the public URL: type an address → stamped quote → registry → back → stranger → mobile, zero console errors
 - [ ] ACP agents registered → `neraca.acp seller` (provider side; the observer side needs nothing)
 - [ ] Demo video 2–5 min, recall beat as ONE unedited take with commit hash + clock
 - [ ] 2 public posts

@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-11T00:00:00Z",
+  "title": "Design System: NERACA",
+  "extensions": {
+    "colorMeta": {
+      "ledger-green": { "role": "neutral", "displayName": "Ledger Green (eye-ease paper)", "canonical": "#e9eedf", "tonalRamp": ["oklch(20% 0.02 118)", "oklch(32% 0.025 118)", "oklch(45% 0.03 118)", "oklch(58% 0.035 118)", "oklch(70% 0.035 118)", "oklch(82% 0.03 118)", "oklch(90% 0.025 118)", "oklch(94% 0.02 118)"] },
+      "iron-ink": { "role": "primary", "displayName": "Iron Ink", "canonical": "#1b1c17", "tonalRamp": ["oklch(15% 0.01 110)", "oklch(22% 0.01 110)", "oklch(35% 0.01 110)", "oklch(48% 0.01 110)", "oklch(62% 0.01 110)", "oklch(75% 0.01 110)", "oklch(87% 0.01 110)", "oklch(95% 0.01 110)"] },
+      "faded-ink": { "role": "neutral", "displayName": "Faded Ink", "canonical": "#454a3e", "tonalRamp": ["oklch(15% 0.015 125)", "oklch(25% 0.02 125)", "oklch(38% 0.02 125)", "oklch(50% 0.02 125)", "oklch(62% 0.02 125)", "oklch(75% 0.02 125)", "oklch(87% 0.015 125)", "oklch(95% 0.01 125)"] },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#b3bda6", "tonalRamp": ["oklch(15% 0.02 125)", "oklch(28% 0.03 125)", "oklch(42% 0.035 125)", "oklch(55% 0.035 125)", "oklch(68% 0.035 125)", "oklch(78% 0.03 125)", "oklch(88% 0.025 125)", "oklch(95% 0.015 125)"] },
+      "approve-green": { "role": "status", "displayName": "Approve Green", "canonical": "#2b5a37", "tonalRamp": ["oklch(15% 0.05 150)", "oklch(25% 0.07 150)", "oklch(40% 0.09 150)", "oklch(52% 0.1 150)", "oklch(65% 0.1 150)", "oklch(77% 0.08 150)", "oklch(88% 0.06 150)", "oklch(95% 0.03 150)"] },
+      "guarantee-ochre": { "role": "status", "displayName": "Guarantee Ochre", "canonical": "#735616", "tonalRamp": ["oklch(15% 0.04 80)", "oklch(28% 0.07 80)", "oklch(45% 0.09 80)", "oklch(58% 0.11 80)", "oklch(70% 0.12 80)", "oklch(80% 0.1 80)", "oklch(90% 0.07 80)", "oklch(95% 0.04 80)"] },
+      "decline-vermilion": { "role": "status", "displayName": "Decline Vermilion", "canonical": "#b3301c", "tonalRamp": ["oklch(15% 0.07 32)", "oklch(28% 0.11 32)", "oklch(42% 0.15 32)", "oklch(52% 0.17 32)", "oklch(64% 0.16 32)", "oklch(76% 0.12 32)", "oklch(88% 0.07 32)", "oklch(95% 0.03 32)"] },
+      "no-history-graphite": { "role": "status", "displayName": "No-History Graphite", "canonical": "#5f6457", "tonalRamp": ["oklch(15% 0.01 125)", "oklch(28% 0.015 125)", "oklch(40% 0.015 125)", "oklch(50% 0.015 125)", "oklch(62% 0.015 125)", "oklch(75% 0.015 125)", "oklch(87% 0.01 125)", "oklch(95% 0.01 125)"] },
+      "canary": { "role": "secondary", "displayName": "Canary (carbon-copy stock)", "canonical": "#efd45a", "tonalRamp": ["oklch(20% 0.05 95)", "oklch(35% 0.08 95)", "oklch(50% 0.11 95)", "oklch(65% 0.13 95)", "oklch(78% 0.14 95)", "oklch(86% 0.14 95)", "oklch(92% 0.1 95)", "oklch(96% 0.05 95)"] },
+      "canary-edge": { "role": "secondary", "displayName": "Canary Edge", "canonical": "#e3c43a", "tonalRamp": ["oklch(20% 0.05 93)", "oklch(35% 0.08 93)", "oklch(50% 0.11 93)", "oklch(65% 0.13 93)", "oklch(75% 0.14 93)", "oklch(83% 0.15 93)", "oklch(90% 0.1 93)", "oklch(96% 0.05 93)"] },
+      "canary-ink": { "role": "secondary", "displayName": "Canary Ink", "canonical": "#5c4a0c", "tonalRamp": ["oklch(15% 0.04 85)", "oklch(25% 0.07 85)", "oklch(38% 0.09 85)", "oklch(50% 0.11 85)", "oklch(63% 0.12 85)", "oklch(76% 0.11 85)", "oklch(88% 0.08 85)", "oklch(95% 0.04 85)"] },
+      "canary-field": { "role": "secondary", "displayName": "Canary Field", "canonical": "#fff8cf", "tonalRamp": ["oklch(20% 0.04 95)", "oklch(35% 0.06 95)", "oklch(50% 0.08 95)", "oklch(65% 0.1 95)", "oklch(78% 0.1 95)", "oklch(88% 0.08 95)", "oklch(94% 0.06 95)", "oklch(97.5% 0.05 95)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (ticket number)", "purpose": "NOW SERVING number on the ticket; one per page." },
+      "figure": { "displayName": "Figure (balance)", "purpose": "The balance on an index card; the quote price is the same voice at 1.5rem." },
+      "headline": { "displayName": "Headline (thesis)", "purpose": "Landing thesis, three short lines, one italic phrase." },
+      "masthead": { "displayName": "Masthead", "purpose": "NERACA wordmark, uppercase, beside the mark." },
+      "title": { "displayName": "Title (card name)", "purpose": "Counterparty name on an index card." },
+      "section": { "displayName": "Section head", "purpose": "Ruled section head, uppercase, with a plain faded caption at right." },
+      "body": { "displayName": "Body", "purpose": "Prose and card entries. 16px on the registry, 17px on the landing." },
+      "label": { "displayName": "Label (small caps)", "purpose": "Table heads, dl keys, totals captions; faded ink, 0.04-0.06em tracking." },
+      "stamp": { "displayName": "Stamp", "purpose": "Rotated ink stamp text." },
+      "mono": { "displayName": "Mono (figures)", "purpose": "Table figures, field, commands; tabular numerals, right-aligned." },
+      "address": { "displayName": "Address", "purpose": "0x addresses and hashes; user-select: all." }
+    },
+    "shadows": [
+      { "name": "stamp-rings", "value": "inset 0 0 0 2px var(--bone), inset 0 0 0 3px currentColor", "purpose": "Not elevation. The stamp's double rule; the first ring takes the paper color of its ground (--bone on cards, --canary on the ticket). No other shadow exists in the system." }
+    ],
+    "motion": [
+      { "name": "button-press", "value": "transform: translateY(1px) on :active", "purpose": "The only motion: the ticket button presses like a key. No transitions anywhere." }
+    ],
+    "breakpoints": [
+      { "name": "registry-collapse", "value": "52rem" },
+      { "name": "landing-collapse", "value": "60rem" }
+    ],
+    "cssVariables": {
+      "--bone": "#e9eedf", "--ink": "#1b1c17", "--ink-2": "#454a3e", "--rule": "#b3bda6",
+      "--ok": "#2b5a37", "--hold": "#735616", "--no": "#b3301c", "--none": "#5f6457",
+      "--canary": "#efd45a", "--canary-2": "#e3c43a", "--canary-ink": "#5c4a0c"
+    }
+  },
+  "components": [
+    {
+      "name": "Ticket Button",
+      "kind": "button",
+      "refersTo": "button-ticket",
+      "description": "The one button in the system: the ticket's submit, iron ink on canary.",
+      "html": "<button class=\"ds-btn-ticket\" type=\"submit\">Ask the tariff</button>",
+      "css": ".ds-btn-ticket{width:100%;font:600 .9375rem/1 'Source Sans 3',system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:.7rem;border:1px solid #1b1c17;border-radius:0;background:#1b1c17;color:#efd45a;cursor:pointer}.ds-btn-ticket:hover{background:#000}.ds-btn-ticket:active{transform:translateY(1px)}.ds-btn-ticket:focus-visible{outline:2px solid #1b1c17;outline-offset:2px}"
+    },
+    {
+      "name": "Address Field",
+      "kind": "input",
+      "refersTo": "input-ticket",
+      "description": "Mono address input on canary-field stock with a small-caps label.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-addr\">Who are you about to deal with?</label><input class=\"ds-input-ticket\" id=\"ds-addr\" placeholder=\"0x… agent address on Base\" spellcheck=\"false\">",
+      "css": ".ds-field-label{display:block;font:1rem 'Source Sans 3',system-ui,sans-serif;font-variant:all-small-caps;letter-spacing:.04em;margin-bottom:.35rem;color:#1b1c17}.ds-input-ticket{width:100%;font:.9375rem/1.3 'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums;padding:.5rem .6rem;border:1px solid #1b1c17;border-radius:0;background:#fff8cf;color:#1b1c17}.ds-input-ticket::placeholder{color:#5c4a0c}.ds-input-ticket:focus-visible{outline:2px solid #1b1c17;outline-offset:2px}"
+    },
+    {
+      "name": "Masthead",
+      "kind": "nav",
+      "refersTo": "section-head",
+      "description": "Mark + letterspaced wordmark on a 1px iron rule, plain links at right.",
+      "html": "<header class=\"ds-mast\"><h1><span class=\"ds-brand\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" width=\"24\" height=\"24\" role=\"img\" aria-label=\"NERACA\"><g fill=\"none\" stroke=\"#1b1c17\" stroke-width=\"2.5\" stroke-linecap=\"square\"><path d=\"M32 12v40M20 54h24\"/><path d=\"M11 22l42-6\"/><path d=\"M11 22v9M53 16v9\"/><g fill=\"none\"><path d=\"M3 31h16v3H3zM3 37h16M3 43h12\"/><path d=\"M45 25h16v3H45zM45 31h16M45 37h12\"/></g></g><rect x=\"29.5\" y=\"16.5\" width=\"5\" height=\"5\" fill=\"#1b1c17\"/><circle cx=\"53\" cy=\"16\" r=\"2.4\" fill=\"#b3301c\"/></svg><span>NERACA</span></span><small>registry</small></h1><nav><a href=\"#\">Counter</a> &middot; <time>2026-09-11</time></nav></header>",
+      "css": ".ds-mast{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;border-bottom:1px solid #1b1c17;padding-bottom:.5rem;color:#1b1c17;font-family:'Source Sans 3',system-ui,sans-serif}.ds-mast h1{margin:0;font-size:1.4375rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}.ds-mast h1 small{font-weight:400;font-size:.9375rem;letter-spacing:.02em;text-transform:none;color:#454a3e;margin-left:.75rem}.ds-brand{display:inline-flex;align-items:center;gap:.6rem}.ds-brand svg{display:block}.ds-mast nav{font-size:.9375rem;color:#454a3e}.ds-mast time{font-family:'Courier Prime',ui-monospace,monospace;font-size:.875rem}.ds-mast a{color:inherit;text-decoration-thickness:1px;text-underline-offset:.18em}.ds-mast a:focus-visible{outline:1px solid #1b1c17;outline-offset:2px}"
+    },
+    {
+      "name": "Stamp",
+      "kind": "chip",
+      "refersTo": "stamp",
+      "description": "Rotated ink stamp in a status ink; the system's only state marker.",
+      "html": "<span class=\"ds-stamp ds-hold\">Approve with guarantee</span> <span class=\"ds-stamp ds-no\">Decline</span> <span class=\"ds-stamp ds-ok\">Approve</span> <span class=\"ds-stamp ds-none\">No history</span>",
+      "css": ".ds-stamp{display:inline-block;margin:.5rem;transform:rotate(-6deg);text-align:center;line-height:1.3;font:600 .6875rem/1.3 'Source Sans 3',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .5rem;border:1px solid currentColor;border-radius:0;box-shadow:inset 0 0 0 2px #e9eedf,inset 0 0 0 3px currentColor;mix-blend-mode:multiply}.ds-ok{color:#2b5a37}.ds-hold{color:#735616}.ds-no{color:#b3301c}.ds-none{color:#5f6457}"
+    },
+    {
+      "name": "Index Card",
+      "kind": "card",
+      "refersTo": "index-card",
+      "description": "Registry card: ruled four-entry list, balance at right, italic why-line, stamp.",
+      "html": "<article class=\"ds-card\"><header><h3>Klien B <span class=\"ds-short\">0xKLIEN…000B</span></h3></header><dl><div><dt>jobs</dt><dd>3</dd></div><div><dt>disputes</dt><dd>1</dd></div><div><dt>invoices</dt><dd>2</dd></div><div><dt>last seen</dt><dd>2026-09-10</dd></div></dl><div class=\"ds-balance\"><span>balance</span><strong>52</strong></div><p class=\"ds-why\">one dispute against two paid invoices</p><span class=\"ds-stamp ds-hold\">Approve with guarantee</span></article>",
+      "css": ".ds-card{background:#e9eedf;color:#1b1c17;border:1px solid #b3bda6;padding:1rem 1rem 1.1rem;display:grid;grid-template-columns:minmax(0,1fr) 8.5rem;grid-template-areas:'head head' 'list balance' 'why stamp';column-gap:1rem;row-gap:.5rem;font:16px/1.45 'Source Sans 3',system-ui,sans-serif;max-width:24rem}.ds-card header{grid-area:head;margin-bottom:.6rem}.ds-card h3{margin:0;font-size:1.125rem;font-weight:600}.ds-short{font-family:'Courier Prime',ui-monospace,monospace;font-weight:700;margin-left:.5rem}.ds-card dl{grid-area:list;margin:0}.ds-card dl div{display:flex;justify-content:space-between;align-items:baseline;line-height:1.35rem;padding:.12rem 0 .18rem;border-bottom:1px solid #b3bda6}.ds-card dt{font-variant:all-small-caps;letter-spacing:.05em;color:#454a3e}.ds-card dd{margin:0;font-family:'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums}.ds-balance{grid-area:balance;display:flex;flex-direction:column;align-items:flex-end;border-left:1px solid #b3bda6;padding-left:1rem}.ds-balance span{font-variant:all-small-caps;letter-spacing:.06em;color:#454a3e}.ds-balance strong{font:700 2.25rem/1 'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums}.ds-why{grid-area:why;margin:.1rem 0 0;font-size:.875rem;font-style:italic;color:#454a3e;align-self:end}.ds-card .ds-stamp{grid-area:stamp;justify-self:end;align-self:end;margin:.35rem .25rem 0 0;transform:rotate(-6deg);font:600 .6875rem/1.3 'Source Sans 3',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .5rem;border:1px solid currentColor;box-shadow:inset 0 0 0 2px #e9eedf,inset 0 0 0 3px currentColor;mix-blend-mode:multiply;text-align:center;max-width:100%}.ds-hold{color:#735616}"
+    },
+    {
+      "name": "Daybook Board",
+      "kind": "custom",
+      "refersTo": "table-cell",
+      "description": "Fixed-column table with row states; DECLINE rows dim to vermilion.",
+      "html": "<table class=\"ds-board\"><thead><tr><th>entered</th><th>verdict</th><th>counterparty</th><th class=\"n\">balance</th></tr></thead><tbody><tr class=\"ds-ok\"><td>2026-09-10</td><td class=\"v\">APPROVE</td><td>Vendor A</td><td class=\"n\">81</td></tr><tr class=\"ds-no\"><td>2026-09-10</td><td class=\"v\">DECLINE</td><td>Klien C</td><td class=\"n\">12</td></tr><tr class=\"ds-none\"><td>2026-09-09</td><td class=\"v\">NO HISTORY</td><td>0x9f…c21</td><td class=\"n\">&mdash;</td></tr></tbody></table>",
+      "css": ".ds-board{width:100%;border-collapse:collapse;font:.9375rem 'Source Sans 3',system-ui,sans-serif;border:1px solid #b3bda6;color:#1b1c17;background:#e9eedf}.ds-board th{text-align:left;font-variant:all-small-caps;letter-spacing:.06em;font-weight:600;color:#454a3e;padding:.45rem .75rem;border-bottom:1px solid #1b1c17;white-space:nowrap}.ds-board th.n,.ds-board td.n{text-align:right;white-space:nowrap}.ds-board td{padding:.5rem .75rem;border-bottom:1px solid #b3bda6;vertical-align:top}.ds-board tr:last-child td{border-bottom:0}.ds-board td:first-child,.ds-board td.n{font-family:'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}.ds-board td.v{font-weight:600;letter-spacing:.04em;white-space:nowrap}.ds-board tr.ds-ok td.v{color:#2b5a37}.ds-board tr.ds-hold td.v{color:#735616}.ds-board tr.ds-no td{color:#b3301c}.ds-board tr.ds-no td.v{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em}.ds-board tr.ds-none td{color:#5f6457}"
+    },
+    {
+      "name": "Figures Strip",
+      "kind": "custom",
+      "refersTo": "table-cell",
+      "description": "Four ruled cells: small-caps caption left, bold mono figure right.",
+      "html": "<div class=\"ds-figures\"><div><span>journal entries</span><b>48</b></div><div><span>verdicts given</span><b>16</b></div><div><span>agents on file</span><b>16</b></div><div><span>names known</span><b>9</b></div></div>",
+      "css": ".ds-figures{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #b3bda6;color:#1b1c17;font:16px/1.45 'Source Sans 3',system-ui,sans-serif}.ds-figures div{padding:.5rem .75rem;display:flex;justify-content:space-between;gap:.75rem;border-right:1px solid #b3bda6}.ds-figures div:first-child{padding-left:0}.ds-figures div:last-child{border-right:0}.ds-figures span{font-variant:all-small-caps;letter-spacing:.06em;color:#454a3e}.ds-figures b{font:700 1rem 'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Counter Form",
+      "kind": "card",
+      "refersTo": "counter-form",
+      "description": "Numbered ruled form: head, one sentence, one mono command.",
+      "html": "<section class=\"ds-counter\"><h2><code>01</code> x402</h2><p>Pay per answer. A 402 quotes the memory-set price; settle in USDC and the verdict comes back with its evidence.</p><pre>GET /quote/&lt;addr&gt;\nGET /risk/&lt;addr&gt;?budget=50</pre></section>",
+      "css": ".ds-counter{background:#e9eedf;color:#1b1c17;border:1px solid #b3bda6;padding:1rem;font:17px/1.5 'Source Sans 3',system-ui,sans-serif;max-width:24rem}.ds-counter h2{margin:0 0 .5rem;font-size:.8125rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;display:flex;gap:.75rem;align-items:baseline}.ds-counter h2 code{font-family:'Courier Prime',ui-monospace,monospace;font-size:.75rem;color:#454a3e}.ds-counter p{margin:0 0 .5rem;font-size:.9375rem}.ds-counter pre{margin:0;font:.8125rem/1.45 'Courier Prime',ui-monospace,monospace;white-space:pre-wrap;word-break:break-word;border-top:1px solid #b3bda6;padding-top:.5rem}"
+    },
+    {
+      "name": "Counter Ticket",
+      "kind": "custom",
+      "refersTo": "ticket",
+      "description": "Canary carbon-copy ticket with the quote form and a stamped answer; landing-only material.",
+      "html": "<form class=\"ds-ticket\" onsubmit=\"return false\"><div class=\"ds-head\"><span>Trust bureau</span><span>quote ticket</span></div><p class=\"ds-serving\">now serving</p><p class=\"ds-no\">0017</p><label class=\"ds-label\" for=\"ds-t-addr\">Who are you about to deal with?</label><input class=\"ds-in\" id=\"ds-t-addr\" placeholder=\"0x… agent address on Base\" spellcheck=\"false\"><button class=\"ds-btn\" type=\"submit\">Ask the tariff</button><div class=\"ds-answer\"><code class=\"ds-addr\">0xKLIENB000000000000000000000000000000000B</code><p><b>Klien B</b> &mdash; <b>3</b> remembered events. The verdict costs <b class=\"ds-price\">$0.04</b>.</p><span class=\"ds-tstamp ds-hold\">quoted</span></div><p class=\"ds-fine\">A verdict costs what the memory behind it is worth: $0.01 for a stranger, +$0.01 per remembered event, cap $0.25.</p></form>",
+      "css": ".ds-ticket{background:#efd45a;color:#1b1c17;padding:1.25rem 1.25rem 1.5rem;border:1px solid #e3c43a;border-radius:0;display:flex;flex-direction:column;font:17px/1.5 'Source Sans 3',system-ui,sans-serif;max-width:24rem;margin:1rem}.ds-head{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;border-bottom:1px solid #1b1c17;padding-bottom:.4rem}.ds-serving{margin:1rem 0 .25rem;font-variant:all-small-caps;letter-spacing:.04em;color:#5c4a0c}.ds-no{font:700 4.5rem/1 'Courier Prime',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin:0 0 1rem;letter-spacing:-.02em}.ds-label{display:block;font-variant:all-small-caps;letter-spacing:.04em;margin-bottom:.35rem}.ds-in{width:100%;font:.9375rem/1.3 'Courier Prime',ui-monospace,monospace;padding:.5rem .6rem;border:1px solid #1b1c17;border-radius:0;background:#fff8cf;color:#1b1c17}.ds-in::placeholder{color:#5c4a0c}.ds-btn{margin-top:.6rem;width:100%;font:600 .9375rem/1 'Source Sans 3',system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:.7rem;border:1px solid #1b1c17;border-radius:0;background:#1b1c17;color:#efd45a;cursor:pointer}.ds-btn:hover{background:#000}.ds-btn:active{transform:translateY(1px)}.ds-in:focus-visible,.ds-btn:focus-visible{outline:2px solid #1b1c17;outline-offset:2px}.ds-answer{position:relative;margin-top:1.1rem;border-top:1px dashed #1b1c17;padding-top:.8rem}.ds-answer::before,.ds-answer::after{content:'';position:absolute;top:-8px;width:15px;height:15px;border-radius:50%;background:#e9eedf;border:1px solid #e3c43a}.ds-answer::before{left:calc(-1.25rem - 8px)}.ds-answer::after{right:calc(-1.25rem - 8px)}.ds-addr{display:block;padding-right:6.5rem;font:.8125rem 'Courier Prime',ui-monospace,monospace;word-break:break-all;user-select:all}.ds-answer p{margin:.4rem 0 0}.ds-price{font-family:'Courier Prime',monospace;font-size:1.5rem}.ds-tstamp{position:absolute;right:.25rem;top:.7rem;transform:rotate(-8deg);font:600 .6875rem/1.3 'Source Sans 3',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .5rem;border:1px solid currentColor;box-shadow:inset 0 0 0 2px #efd45a,inset 0 0 0 3px currentColor;mix-blend-mode:multiply}.ds-hold{color:#735616}.ds-fine{margin:1rem 0 0;padding-top:.6rem;font-size:.8125rem;color:#5c4a0c;border-top:1px dashed #1b1c17}"
+    },
+    {
+      "name": "Section Head",
+      "kind": "nav",
+      "refersTo": "section-head",
+      "description": "Ruled section head with a plain faded caption on the same line.",
+      "html": "<h2 class=\"ds-section\">Daybook <span>latest verdicts, newest first</span></h2>",
+      "css": ".ds-section{font:600 .875rem 'Source Sans 3',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;margin:0 0 .75rem;padding-bottom:.35rem;border-bottom:1px solid #1b1c17;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;color:#1b1c17}.ds-section span{font-weight:400;letter-spacing:.02em;text-transform:none;color:#454a3e;text-align:right}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ledger Office",
+    "overview": "NERACA is a credit bureau for agents, and its pages are the bureau's own paper: eye-ease ledger-green stock (the owner's word is hijau eye-ease, the accountant's ledger green), iron ink, and rules drawn at one device pixel. Nothing is a dashboard. The registry is a drawer of index cards with a balance and a stamp; the landing is a counter ticket printed on canary carbon-copy stock; the numbers are typed in a typewriter face because they are read from memory as the page renders. There is no chrome: no radius, no drop shadow, no gradient, no icon. Everything that carries meaning is either a rule, a figure, a small-cap label, or a stamp.\n\nDensity is that of a well-kept book. Sections open with a ruled heading; tables and card grids are separated by hairlines, not gutters; every figure is right-aligned and tabular. Color is spent on exactly one thing: the verdict. Four fixed status inks (bottle green, ochre, vermilion, graphite) mark APPROVE, APPROVE_WITH_GUARANTEE, DECLINE and NO_HISTORY and nothing else. The one departure from the green paper is the landing's canary ticket, a second real ledger-office material committed for that surface alone.\n\nThe world rejects the SaaS hero, metric tiles, card-inside-card admin grids, and any illusion of depth. The page is the receipt.",
+    "keyCharacteristics": [
+      "Ledger-green paper (#e9eedf) with iron ink; a single hairline color for every rule",
+      "Hairlines at 1px, no radius, no drop shadows; depth is stated by rules and ink weight only",
+      "Source Sans 3 for apparatus and prose, Courier Prime with tabular numerals for every figure and address",
+      "Small-caps labels (font-variant: all-small-caps) for column heads, keys and captions",
+      "Four fixed status inks used only for verdict state, never for decoration",
+      "The rotated ink stamp as the system's signature mark of state"
+    ],
+    "rules": [
+      { "name": "The Status-Only Rule", "body": "The four status inks appear only on a stamp, a verdict cell, or a status annotation. No heading, button, link, or decoration borrows them. The mark's one vermilion point is the sole exception and it is the mark, not a surface.", "section": "colors" },
+      { "name": "The One Paper Rule", "body": "There is one ground color. Containers do not tint; they are drawn on the paper with hairlines. A second material (the canary ticket) must be a real ledger-office stock and must be committed for a surface, not sprinkled.", "section": "colors" },
+      { "name": "The Typed Figure Rule", "body": "Any number that came from memory or the chain is set in Courier Prime with tabular numerals and right-aligned. Prose never carries a figure the mono face could.", "section": "typography" },
+      { "name": "The Small-Caps Apparatus Rule", "body": "Keys, column heads and captions are all-small-caps with 0.04–0.06em tracking in faded ink; they are never bold, never colored, never uppercase-with-tracking (that treatment belongs to section heads and stamps).", "section": "typography" },
+      { "name": "The Ruling Rule", "body": "All separation is drawn with 1px rules in exactly two weights: iron ink for structural rules and hairline for everything else. No 2px rules, no borders in status colors except the stamp's own.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do draw every separation as a 1px rule: iron ink for masthead, section heads and table heads; hairline for rows, entries and grid gutters.",
+      "Do set every figure, address, hash and command in Courier Prime with font-variant-numeric: tabular-nums, right-aligned in tables.",
+      "Do use gap: 1px over a hairline background for grids of like containers so cards touch along rules.",
+      "Do mark state with the rotated stamp or a colored verdict cell, in the four fixed status inks only.",
+      "Do make addresses user-select: all at 0.8125rem so an operator can copy one in a click.",
+      "Do keep the ticket's canary materials on the ticket."
+    ],
+    "donts": [
+      "Don't round any corner; the ticket's punched perforation is the only curve and it is a hole, not a radius.",
+      "Don't add drop shadows, tints, gradients or translucency; containers are outlined on the one paper.",
+      "Don't spend a status ink on a heading, link, button or accent.",
+      "Don't replace the mark or the stamp with an icon set; the world has no glyph icons.",
+      "Don't introduce a metric-tile hero, a feature-card grid, or a card inside a card.",
+      "Don't bold or color a small-caps label; tracking and faded ink are its whole voice."
+    ]
+  }
+}

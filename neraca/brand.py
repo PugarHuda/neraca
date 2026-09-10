@@ -29,8 +29,11 @@ def mark(size: int = 28, ink: str = INK, paper: str | None = None) -> str:
 
 
 def wordmark(height: int = 22) -> str:
-    """Mark + NERACA, set in the pages' own letterspaced sans, for mastheads."""
-    return (f'<span class="brand">{mark(height)}<span>NERACA</span></span>')
+    """Mark + NERACA, set in the pages' own letterspaced sans, for mastheads.
+    The text carries the name; the mark is decorative here, so assistive tech
+    reads NERACA once, not twice."""
+    decorative = mark(height).replace('role="img" aria-label="NERACA"', 'aria-hidden="true" focusable="false"', 1)
+    return f'<span class="brand">{decorative}<span>NERACA</span></span>'
 
 
 FAVICON = mark(64, paper=PAPER)
