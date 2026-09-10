@@ -234,7 +234,7 @@ def home():
         today=today, jobs=len(jobs), settles=len(settles), verdicts=len(verdicts), agents=len(agents),
         version=rubric.get("version", 1), cards=cards, verdict_rows=verdict_rows, settle_rows=settle_rows,
         slip=slip, blind=f"{BLIND_PRICE:.2f}", per=f"{PER_EVENT:.2f}", cap=f"{PRICE_CAP:.2f}", pay_to=e(PAY_TO),
-        brand=wordmark(24),
+        brand=wordmark(30),
     )
 
 

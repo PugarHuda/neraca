@@ -17,7 +17,7 @@ def mark(size: int = 28, ink: str = INK, paper: str | None = None) -> str:
     """The scale alone. `paper` fills the pans (favicon); None keeps them open."""
     fill = paper or "none"
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="{size}" height="{size}" role="img" aria-label="NERACA">
-<g fill="none" stroke="{ink}" stroke-width="2.5" stroke-linecap="square">
+<g fill="none" stroke="{ink}" stroke-width="3" stroke-linecap="square">
   <path d="M32 12v40M20 54h24"/>
   <path d="M11 22l42-6" />
   <path d="M11 22v9M53 16v9"/>

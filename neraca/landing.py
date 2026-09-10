@@ -61,7 +61,7 @@ def render(addr: str | None = None) -> str:
         serving=serving, stamped=stamped, addr=e(addr or ""),
         jobs=len(jobs), verdicts=len(verdicts), agents=len(profiles), named=len(directory),
         blind=f"{BLIND_PRICE:.2f}", per=f"{PER_EVENT:.2f}", cap=f"{PRICE_CAP:.2f}",
-        pay_to=e(PAY_TO), receipts=receipts, repo=REPO, brand=wordmark(24),
+        pay_to=e(PAY_TO), receipts=receipts, repo=REPO, brand=wordmark(30),
     )
 
 
@@ -128,7 +128,7 @@ td{{padding:.5rem .75rem;border-bottom:1px solid var(--rule);vertical-align:top}
 .figures span{{font-variant:all-small-caps;letter-spacing:.04em;color:var(--ink-2)}}.figures b{{font-family:"Courier Prime",monospace;font-weight:700}}
 footer{{margin-top:3rem;padding-top:.75rem;border-top:1px solid var(--ink);font-size:.875rem;color:var(--ink-2);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}}
 @media (min-width:60.01rem){{.front{{align-items:stretch;min-height:calc(100vh - 7.5rem);grid-template-columns:minmax(0,24rem) minmax(0,1fr)}}.ticket .fine{{margin-top:auto}}.thesis span{{display:block}}}}
-@media (max-width:60rem){{.front{{grid-template-columns:1fr}}.counters{{grid-template-columns:1fr}}.figures{{grid-template-columns:1fr 1fr}}.figures div:nth-child(2){{border-right:0}}.figures div:nth-child(3){{padding-left:0}}.thesis{{font-size:1.5rem}}}}
+@media (max-width:60rem){{table{{min-width:34rem}}.front{{grid-template-columns:1fr}}.counters{{grid-template-columns:1fr}}.figures{{grid-template-columns:1fr 1fr}}.figures div:nth-child(2){{border-right:0}}.figures div:nth-child(3){{padding-left:0}}.thesis{{font-size:1.5rem}}}}
 </style></head><body><div class="page">
 <header class="mast"><h1>{brand}</h1><nav><a href="/registry">Registry</a><a href="{repo}">Source</a></nav></header>
 

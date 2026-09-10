@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" width="360" height="96" role="img" aria-label="NERACA — trust bureau for the agent economy">
 <rect width="360" height="96" fill="#e9eedf"/>
 <g transform="translate(16 16)">
-<g fill="none" stroke="#1b1c17" stroke-width="2.5" stroke-linecap="square">
+<g fill="none" stroke="#1b1c17" stroke-width="3" stroke-linecap="square">
   <path d="M32 12v40M20 54h24"/>
   <path d="M11 22l42-6" />
   <path d="M11 22v9M53 16v9"/>
