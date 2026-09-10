@@ -100,7 +100,7 @@ Show the Basescan link resolving in a browser. Fire the stake at KLIEN-B first �
 
 ## 6 · Close (15s)
 
-Three agents, one shared memory, no other channel. `pytest` — 6 tests, one of
+Three agents, one shared memory, no other channel. `pytest` — 9 tests, one of
 which is the deletion test judges will run themselves.
 
 ## Credential checklist (do this before recording)
