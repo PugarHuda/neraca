@@ -52,6 +52,9 @@ files (WARM), doctrine (REFERENCE), open negotiations (HOT), and a morgue
   no wallet at all.
   [`neraca/server.py`](neraca/server.py): the risk endpoint is x402-paywalled
   (test USDC, x402.org facilitator).
+  Executed on Base Sepolia, both memory-gated:
+  guarantee stake [`0x8dbebb9d…`](https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678) ·
+  x402 settlement [`0x8758b13c…`](https://sepolia.basescan.org/tx/0x8758b13c150d2e29d90e97bfad9d153d9f72643a1696bb9f2b3c6b4aefd33513).
 - **Virtuals Protocol** — [`neraca/acp.py`](neraca/acp.py): NERACA is a
   registered ACP (v2) provider; a funded job's deliverable is a memory-backed
   risk report, and every job phase it witnesses is journaled live.

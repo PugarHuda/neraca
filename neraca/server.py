@@ -7,6 +7,7 @@ literally a read of Sibyl Memory — no memory, nothing to sell.
 Run: uvicorn neraca.server:app --port 8402
 """
 
+import base64
 import json
 import os
 
@@ -84,9 +85,11 @@ async def pay(url: str) -> None:
             raise SystemExit(f"payment not settled - is {account.address} funded with "
                              f"Base Sepolia test USDC? server said: {r.text[:200]}")
         r.raise_for_status()
-        receipt = r.headers.get("x-payment-response") or r.headers.get("payment-response")
-        print(json.dumps({"paid": True, "payment_response": receipt,
-                          "answer": r.json()}, indent=2))
+        raw = r.headers.get("x-payment-response") or r.headers.get("payment-response")
+        receipt = json.loads(base64.b64decode(raw)) if raw else None
+        if receipt and receipt.get("transaction"):
+            receipt["explorer"] = "https://sepolia.basescan.org/tx/" + receipt["transaction"]
+        print(json.dumps({"paid": True, "receipt": receipt, "answer": r.json()}, indent=2))
 
 
 if __name__ == "__main__":

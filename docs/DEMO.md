@@ -78,25 +78,32 @@ echo $?      # 1
 
 "No memory, no bureau." There is no fallback path to fall back to.
 
-## 5 · Selling the answer — on-chain proofs (60s)
+## 5 · Selling the answer — on-chain proofs (75s)
 
 ```bash
 # free, no keys, live Base mainnet read:
 python -m neraca.onchain b20              # Apple Inc. / AAPLc / totalSupply
 
-# x402 storefront (terminal A), then the buyer (terminal B):
-uvicorn neraca.server:app --port 8402
-curl -i http://127.0.0.1:8402/risk/0xKLIENB000000000000000000000000000000000B?budget=50   # 402
-# make the price legible on camera - x402 v2 carries it in a base64 header:
-curl -sD- -o/dev/null 'http://127.0.0.1:8402/risk/0xKLIENB000000000000000000000000000000000B?budget=50' \n  | grep -i '^payment-required' | cut -d' ' -f2 | base64 -d | python -m json.tool
-python -m neraca.server                   # walks the 402, pays, prints the answer + receipt
-
-# guarantee stake — memory-gated, refuses without an open APPROVE_WITH_GUARANTEE:
+# the guarantee stake, refused first, then fired for real:
+python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50   # DECLINE
+python -m neraca.onchain stake 0xKLIENB000000000000000000000000000000000B 1.0 # REFUSED - memory gate, no key touched
 python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50   # APPROVE_WITH_GUARANTEE
-python -m neraca.onchain stake 0xKLIENA000000000000000000000000000000000A 1.0 # Basescan link
+python -m neraca.onchain stake 0xKLIENA000000000000000000000000000000000A 1.0 # real USDC transfer(), Basescan link
+
+# x402 storefront (pane A), then the buyer (pane C):
+uvicorn neraca.server:app --port 8402
+curl -i "http://127.0.0.1:8402/risk/0xKLIENB000000000000000000000000000000000B?budget=50"   # 402
+python -m neraca.server                   # walks the 402, pays $0.05, prints the answer + Basescan link
 ```
 
-Show the Basescan link resolving in a browser. Fire the stake at KLIEN-B first — it refuses before it ever reaches a CDP key, because the memory gate runs first: the stake is priced by memory, not typed by hand. That refusal needs no credentials, so record it even if the keys never land.
+Open each Basescan link in the browser, on camera. Rehearsal proofs, both
+confirmed on Base Sepolia:
+
+- stake: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
+- x402 settlement: https://sepolia.basescan.org/tx/0x8758b13c150d2e29d90e97bfad9d153d9f72643a1696bb9f2b3c6b4aefd33513
+
+The stake is priced by memory, not typed by hand; the paid answer is
+literally a read of Sibyl Memory. No memory, nothing to sell.
 
 ## 6 · Close (15s)
 

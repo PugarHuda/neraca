@@ -110,8 +110,11 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 > After: 25 → DECLINE, citing "rejected delivered job sim-b1".
 >
 > The code did not change. The memory did. Rubric lives in @sibylcap's
-> REFERENCE tier, the stake fires on @base, jobs come from @virtuals_io ACP.
+> REFERENCE tier; the guarantee stake and the x402 payment both settled on
+> @base Sepolia, both gated by memory before a key was ever touched; jobs
+> come from @virtuals_io ACP.
 >
+> stake: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
 > [video link]
 
 ## 3 · Checklist
@@ -121,8 +124,8 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 - [x] Deletion test in the suite (10/10 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
-- [ ] CDP keys → `onchain wallet`, faucet, `onchain stake` (Basescan link)
-- [ ] `NERACA_BUYER_KEY` funded → paid x402 leg
+- [x] Guarantee stake executed on Base Sepolia: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
+- [x] x402 402→paid leg settled on Base Sepolia: https://sepolia.basescan.org/tx/0x8758b13c150d2e29d90e97bfad9d153d9f72643a1696bb9f2b3c6b4aefd33513
 - [ ] ACP agents registered → `neraca.acp seller` (second stack, ×1.25)
 - [ ] Demo video 2–5 min, recall beat as ONE unedited take with commit hash + clock
 - [ ] 2 public posts
