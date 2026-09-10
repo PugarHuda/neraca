@@ -90,11 +90,14 @@ def watch(m=None, interval: float = 2.0) -> None:
     m = m or client()
     seen = -1
     print(f"ANALIS watching the journal every {interval}s - Ctrl-C to stop", flush=True)
-    while True:
-        seen, profiles = refresh(m, seen)
-        if profiles is not None:
-            stamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
-            print(f"[{stamp}] journal grew to {seen} events - profiles rebuilt", flush=True)
-            for addr, prof in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):
-                print(f"   {prof['score']:>3}  {addr}", flush=True)
-        time.sleep(interval)
+    try:
+        while True:
+            seen, profiles = refresh(m, seen)
+            if profiles:  # empty journal: nothing to announce yet
+                stamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
+                print(f"[{stamp}] journal grew to {seen} events - profiles rebuilt", flush=True)
+                for addr, prof in sorted(profiles.items(), key=lambda kv: kv[1]["score"]):
+                    print(f"   {prof['score']:>3}  {addr}", flush=True)
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        print("\nANALIS stopped - the journal it read is still on disk", flush=True)
