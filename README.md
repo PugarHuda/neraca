@@ -21,7 +21,7 @@ the product:
 | `read_events` (COLD) | [`neraca/memory.py`](neraca/memory.py) `job_events` | the only input ANALIS ever sees |
 | `set_entity` / `archive_entity` (WARM/ARCHIVE) | [`neraca/analis.py`](neraca/analis.py) `run` | evolving reputation profiles with full `score_history` |
 | `get_reference` / `set_reference` (REFERENCE) | [`neraca/memory.py`](neraca/memory.py) `get_rubric` | the scoring rubric ANALIS applies — memory, not code |
-| `get_entity` (WARM) | [`neraca/makelar.py`](neraca/makelar.py) `decide` | **the load-bearing read**: no profile, no priced decision |
+| `get_entity` (WARM) | [`neraca/makelar.py`](neraca/makelar.py) `decide` | **the load-bearing read**: no profile, no priced decision — and if the profile was archived, it rebuilds from COLD rather than call a known cheat a stranger |
 | `read_events` in a loop (COLD) | [`neraca/analis.py`](neraca/analis.py) `watch` | **the coordination bus**: ANALIS is handed nothing and reacts to what other processes write |
 | `set_state` / `get_state` (HOT) | [`neraca/makelar.py`](neraca/makelar.py), [`neraca/onchain.py`](neraca/onchain.py) | open negotiations; the stake refuses to fire without one |
 
@@ -69,7 +69,7 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #  -> DECLINE, reasons: ["rejected delivered job sim-b1"]  <- recalled, not computed
 
 python -m neraca report <addr>   # the remembered evidence behind any verdict
-pytest                            # 9 tests, incl. the deletion test
+pytest                            # 10 tests, incl. the deletion test
 
 # three processes coordinating with memory as the only wire.
 # the journal is append-only, so this act needs a fresh one:

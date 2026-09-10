@@ -18,7 +18,11 @@ def decide(counterparty: str, budget: float, m=None) -> dict:
     try:
         profile = m.get_entity("agent", counterparty)["body"]
     except Exception:
-        profile = None
+        # WARM is a cache; COLD is the journal of record. A profile that was
+        # never built, or that ANALIS archived for going stale, is not the same
+        # as no history - nobody outruns their record by waiting a month.
+        from .analis import build_profiles
+        profile = build_profiles(job_events(m), rubric).get(counterparty)
 
     if profile is None:
         decision = {

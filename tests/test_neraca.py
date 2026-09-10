@@ -154,3 +154,23 @@ def test_risk_endpoint_is_paywalled(m):
     quote = json.loads(base64.b64decode(r.headers["payment-required"]))
     assert quote["x402Version"] == 2
     assert quote["accepts"][0]["network"] == "eip155:84532"   # Base Sepolia
+
+
+def test_archived_agents_do_not_outrun_their_record(m):
+    """Waiting out the staleness window must not launder a bad history.
+
+    ANALIS archives agents that go quiet, and the SDK has no read-back for an
+    archived entity. The journal is the record of last resort.
+    """
+    from neraca import analis, makelar, pengamat
+    analis.run(seeded(m))
+    assert makelar.decide(pengamat.KLIEN_B, 50, m)["verdict"] == makelar.DECLINE
+
+    m.archive_entity("agent", pengamat.KLIEN_B, reason="gone quiet")
+    with pytest.raises(Exception):
+        m.get_entity("agent", pengamat.KLIEN_B)      # WARM really is gone
+
+    after = makelar.decide(pengamat.KLIEN_B, 50, m)  # rebuilt from COLD
+    assert after["verdict"] == makelar.DECLINE
+    assert "rejected delivered job sim-b1" in after["reasons"]
+    assert makelar.decide("0xneverseen", 50, m)["verdict"] == makelar.NO_HISTORY
