@@ -318,9 +318,16 @@ def test_storefront_is_priced_by_memory(m):
     assert c.get(f"/quote/{pengamat.KLIEN_B}").json()["price_usd"] == 0.05
     assert c.get(f"/risk/{pengamat.KLIEN_B}?budget=50").status_code == 402
 
-    page = c.get("/")
+    page = c.get("/registry")
     assert page.status_code == 200 and "text/html" in page.headers["content-type"]
     assert pengamat.KLIEN_B in page.text and 'id="profiles"' in page.text
+
+    front = c.get("/")                                  # the counter ticket, blank
+    assert front.status_code == 200 and 'name="addr"' in front.text and "$0.01" in front.text
+    ticket = c.get(f"/?addr={pengamat.KLIEN_B}")           # stamped with the memory-set quote
+    assert "$0.05" in ticket.text and "4</b> remembered events" in ticket.text and pengamat.KLIEN_B in ticket.text
+    stranger = c.get("/?addr=0xnobody")
+    assert "A stranger." in stranger.text and "$0.01" in stranger.text
 
 
 def test_directory_names_real_addresses_without_mixing_claims(m):
@@ -401,3 +408,18 @@ def test_mcp_server_answers_from_memory(m):
     body = res.structured_content or json.loads(res.content[0].text)
     body = body.get("result", body)
     assert body["verdict"] == "DECLINE" and "rejected delivered job sim-b1" in body["reasons"]
+
+
+def test_dry_run_builds_every_transaction_and_sends_nothing(m, monkeypatch):
+    """NERACA_DRY_RUN: the exact calldata a judge can inspect, no key funded, no network."""
+    import asyncio
+    from eth_account import Account
+    from neraca import analis, makelar, onchain, pengamat
+    key = Account.create()
+    monkeypatch.setenv("NERACA_DRY_RUN", "1")
+    monkeypatch.setenv("NERACA_STAKE_KEY", key.key.hex())
+    monkeypatch.setenv("NERACA_VAULT", "0x000000000000000000000000000000000000dEaD")
+    analis.run(seeded(m))
+    assert makelar.decide(pengamat.KLIEN_A, 50, m)["verdict"] == makelar.APPROVE_WITH_GUARANTEE
+    out = asyncio.run(onchain.stake_guarantee(pengamat.KLIEN_A, 1.0))
+    assert out["dry_run"] is True and out["tx"] == "0x" + "00" * 32 and out["from"] == key.address

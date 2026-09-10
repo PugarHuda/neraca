@@ -130,44 +130,204 @@ def favicon():
     return Response(status_code=204)  # keeps the browser console clean on the status page
 
 
+@app.get("/favicon.svg")
+def favicon_svg():
+    from .brand import FAVICON
+    return Response(FAVICON, media_type="image/svg+xml")
+
+
+@app.get("/logo.svg")
+def logo_svg():
+    from .brand import LOGO
+    return Response(LOGO, media_type="image/svg+xml")
+
+
 @app.get("/", response_class=HTMLResponse)
+def front(addr: str | None = None):
+    """The front door: a counter ticket that prints what memory is worth."""
+    from . import landing
+    return landing.render(addr)
+
+
+@app.get("/registry", response_class=HTMLResponse)
 def home():
-    """Status page, rendered straight from memory. No JS, nothing cached."""
+    """The bureau's registry, rendered straight from memory. No JS, nothing cached."""
+    from datetime import datetime, timezone
+
+    from .brand import wordmark
+    from .memory import get_directory, get_rubric
     m = client()
+    rubric = get_rubric(m)
     jobs, settles, verdicts = job_events(m), settlement_events(m), verdict_events(m)
+    directory = get_directory(m)
     agents = sorted(m.list_entities("agent", limit=200), key=lambda a: a["body"]["score"])
     e = html.escape
 
-    def row(cells):
-        return "<tr>" + "".join(f"<td>{e(str(c))}</td>" for c in cells) + "</tr>"
+    def verdict_for(score: int) -> str:
+        if score >= rubric["approve_threshold"]:
+            return "APPROVE"
+        if score >= rubric["guarantee_threshold"]:
+            return "APPROVE_WITH_GUARANTEE"
+        return "DECLINE"
 
-    agent_rows = "".join(row((a["body"]["score"], a["name"], a["body"]["jobs_ok"],
-                              a["body"]["disputes_initiated"], a["body"]["invoices_paid"]))
-                         for a in agents)
-    verdict_rows = "".join(row((v["ts"][:19], v["extra"]["verdict"], v["extra"]["counterparty"],
-                                v["extra"]["score"], v["extra"]["counter_budget"]))
-                           for v in reversed(verdicts[-10:]))
-    settle_rows = "".join(row((s["ts"][:19], s["extra"]["payer"], f"${s['extra']['amount_usd']}",
-                               s["extra"]["tx"][:18] + "…")) for s in reversed(settles[-10:]))
+    def tone(verdict: str) -> str:
+        return {"APPROVE": "ok", "APPROVE_WITH_GUARANTEE": "hold", "DECLINE": "no"}.get(verdict, "none")
+
+    def card(a) -> str:
+        b, addr = a["body"], a["name"]
+        v = verdict_for(b["score"])
+        who = (directory.get(addr.lower()) or {}).get("name")
+        last = (b.get("last_seen") or "")[:10]
+        why = b["score_history"][-1]["why"] if b["score_history"] else "clean but thin history"
+        sim = '<span class="sim">simulated</span>' if "sim-" in why or addr.startswith("0xKLIEN") or addr.startswith("0xNERACA") else ""
+        name = e(who) if who else f'<span class="short">{e(addr[:6])}&hellip;{e(addr[-4:])}</span>'
+        return (
+            '<article class="card">'
+            f'<header><h3>{name}</h3><code class="addr">{e(addr)}</code></header>'
+            '<dl>'
+            f'<div><dt>jobs completed</dt><dd>{b["jobs_ok"]}</dd></div>'
+            f'<div><dt>disputes raised</dt><dd>{b["disputes_initiated"]}</dd></div>'
+            f'<div><dt>invoices paid</dt><dd>{b["invoices_paid"]}</dd></div>'
+            f'<div><dt>last entry</dt><dd>{e(last) or "&mdash;"}</dd></div>'
+            '</dl>'
+            f'<p class="why">{e(why)}{sim}</p>'
+            f'<div class="balance"><span>balance</span><strong>{b["score"]}</strong></div>'
+            f'<span class="stamp {tone(v)}">{e(v.replace("_", " "))}</span>'
+            '</article>'
+        )
+
+    cards = "".join(card(a) for a in agents) or (
+        '<p class="empty">The registry is empty. Journal something first: '
+        '<code>python -m neraca seed</code>, then <code>python -m neraca analis</code>.</p>')
+
+    def vrow(v) -> str:
+        x = v["extra"]
+        who = (directory.get((x["counterparty"] or "").lower()) or {}).get("name")
+        named = f"<i>{e(who)}</i>" if who else ""
+        if (x["counterparty"] or "").startswith(("0xKLIEN", "0xNERACA")):
+            named += '<span class="sim">simulated</span>'
+        score = "&mdash;" if x["score"] is None else x["score"]
+        cp = x["counterparty"] or ""
+        short = cp if len(cp) <= 18 else f"{cp[:8]}&hellip;{cp[-6:]}"
+        return (f'<tr class="{tone(x["verdict"])}"><td>{e(v["ts"][:16].replace("T", " "))}</td>'
+                f'<td class="v">{e(x["verdict"].replace("_", " "))}</td>'
+                f'<td><code class="addr" title="{e(cp)}">{short}</code>{named}</td>'
+                f'<td class="n">{score}</td><td class="n">{x["counter_budget"]}</td></tr>')
+
+    def srow(s_) -> str:
+        x = s_["extra"]
+        return (f'<tr><td>{e(s_["ts"][:16].replace("T", " "))}</td><td><code class="addr">{e(x["payer"])}</code></td>'
+                f'<td class="n">${x["amount_usd"]:.2f}</td>'
+                f'<td><a href="https://sepolia.basescan.org/tx/{e(x["tx"])}"><code>{e(x["tx"][:10])}&hellip;</code></a></td></tr>')
+
+    verdict_rows = "".join(vrow(v) for v in reversed(verdicts[-12:])) or (
+        '<tr><td colspan="5" class="empty">No verdicts yet &mdash; '
+        '<code>python -m neraca ask &lt;addr&gt; --budget 50</code>.</td></tr>')
+    settle_rows = "".join(srow(s_) for s_ in reversed(settles[-8:])) or (
+        '<tr><td colspan="4" class="empty">No invoices settled yet &mdash; '
+        'the storefront journals each one it sees paid.</td></tr>')
     note = os.environ.get("NERACA_DEPLOYMENT_NOTE")
-    banner = f'<p id="deployment-note"><i>{e(note)}</i></p>' if note else ""
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>NERACA</title>
-<style>body{{font:14px/1.4 system-ui,sans-serif;margin:2rem;max-width:72rem}}
-table{{border-collapse:collapse;margin:.5rem 0 1.5rem}}td,th{{border:1px solid #ccc;padding:.25rem .6rem;text-align:left}}
-code{{background:#eee;padding:0 .3rem}}</style></head><body>
-<h1>NERACA — trust bureau</h1>{banner}
-<p id="summary">Journal: <b id="jobs">{len(jobs)}</b> job observations,
-<b id="settlements">{len(settles)}</b> settlements, <b id="verdicts">{len(verdicts)}</b> verdicts.
-Profiles: <b id="agents">{len(agents)}</b>. Pay to <code>{e(PAY_TO)}</code> on {e(NETWORK)}.</p>
-<p>Price policy: ${BLIND_PRICE:.2f} blind + ${PER_EVENT:.2f} per remembered event, cap ${PRICE_CAP:.2f}.
-Try <code>GET /quote/&lt;address&gt;</code>, then <code>GET /risk/&lt;address&gt;?budget=50</code> (402 until paid).</p>
-<h2>Reputation profiles (WARM)</h2>
-<table id="profiles"><tr><th>score</th><th>agent</th><th>jobs ok</th><th>disputes</th><th>invoices paid</th></tr>{agent_rows}</table>
-<h2>Latest verdicts (COLD)</h2>
-<table id="verdict-log"><tr><th>when</th><th>verdict</th><th>counterparty</th><th>score</th><th>counter</th></tr>{verdict_rows}</table>
-<h2>Settlements witnessed (COLD)</h2>
-<table id="settlement-log"><tr><th>when</th><th>payer</th><th>paid</th><th>tx</th></tr>{settle_rows}</table>
-</body></html>"""
+    slip = f'<aside class="slip" id="deployment-note">{e(note)}</aside>' if note else ""
+    today = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
+
+    return PAGE.format(
+        today=today, jobs=len(jobs), settles=len(settles), verdicts=len(verdicts), agents=len(agents),
+        version=rubric.get("version", 1), cards=cards, verdict_rows=verdict_rows, settle_rows=settle_rows,
+        slip=slip, blind=f"{BLIND_PRICE:.2f}", per=f"{PER_EVENT:.2f}", cap=f"{PRICE_CAP:.2f}", pay_to=e(PAY_TO),
+        brand=wordmark(24),
+    )
+
+
+PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>NERACA &mdash; registry</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{{--bone:#e9eedf;--ink:#1b1c17;--ink-2:#454a3e;--rule:#b3bda6;--ok:#2b5a37;--hold:#735616;--no:#b3301c;--none:#5f6457}}
+*{{box-sizing:border-box}}html{{background:var(--bone);color:var(--ink)}}
+body{{margin:0;font:16px/1.45 "Source Sans 3",system-ui,sans-serif;-webkit-font-smoothing:antialiased}}
+::selection{{background:var(--ink);color:var(--bone)}}
+a{{color:inherit;text-decoration-thickness:1px;text-underline-offset:.18em}}
+a:focus-visible{{outline:1px solid var(--ink);outline-offset:2px}}
+code,dd,.balance strong,td.n,.totals b,.mast time{{font-family:"Courier Prime",ui-monospace,monospace;font-variant-numeric:tabular-nums}}
+.addr{{font-size:.8125rem;word-break:break-all;user-select:all}}
+.page{{max-width:76rem;margin:0 auto;padding:1.5rem 1.25rem 4rem}}
+.mast{{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding-bottom:.5rem}}
+.mast h1{{margin:0;font-size:1.4375rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}}
+.mast h1 small{{font-weight:400;font-size:.9375rem;letter-spacing:.02em;text-transform:none;color:var(--ink-2);margin-left:.75rem}}
+.brand{{display:inline-flex;align-items:center;gap:.6rem}}.brand svg{{display:block}}
+.mast time{{font-size:.875rem;color:var(--ink-2)}}
+.mast nav{{font-size:.9375rem;color:var(--ink-2)}}
+.totals{{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);margin:0 0 2rem}}
+.totals div{{padding:.5rem .75rem;display:flex;justify-content:space-between;gap:.75rem;border-right:1px solid var(--rule)}}
+.totals div:first-child{{padding-left:0}}.totals div:last-child{{border-right:0}}
+.totals span{{font-variant:all-small-caps;letter-spacing:.06em;color:var(--ink-2)}}
+.totals b{{font-weight:700}}
+h2{{font-size:.875rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin:2.5rem 0 .75rem;padding-bottom:.35rem;border-bottom:1px solid var(--ink);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}}
+h2 span{{font-weight:400;letter-spacing:.02em;text-transform:none;color:var(--ink-2);text-align:right}}
+main>h2:first-child{{margin-top:0}}
+.registry{{display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}}
+.card{{background:var(--bone);padding:1rem 1rem 1.1rem;display:grid;grid-template-columns:minmax(0,1fr) 8.5rem;grid-template-areas:"head head" "list balance" "why stamp";column-gap:1rem;row-gap:.5rem}}
+.card header{{grid-area:head;margin-bottom:.6rem}}
+.card h3{{margin:0;font-size:1.125rem;font-weight:600}}
+.card h3 .short{{font-family:"Courier Prime",ui-monospace,monospace;font-weight:700;letter-spacing:0}}
+.card dl{{grid-area:list;margin:0}}
+.card dl div{{display:flex;justify-content:space-between;align-items:baseline;line-height:1.35rem;padding:.12rem 0 .18rem;border-bottom:1px solid var(--rule)}}
+.card dt{{font-variant:all-small-caps;letter-spacing:.05em;color:var(--ink-2)}}
+.card dd{{margin:0}}
+.card .why{{grid-area:why;margin:.1rem 0 0;font-size:.875rem;font-style:italic;color:var(--ink-2);align-self:end}}
+.balance{{grid-area:balance;display:flex;flex-direction:column;align-items:flex-end;border-left:1px solid var(--rule);padding-left:1rem;min-width:5.5rem}}
+.balance span{{font-variant:all-small-caps;letter-spacing:.06em;color:var(--ink-2)}}
+.balance strong{{font-size:2.25rem;line-height:1;font-weight:700}}
+.stamp{{grid-area:stamp;justify-self:end;align-self:end;margin:.35rem .25rem 0 0;transform:rotate(-6deg);white-space:normal;text-align:center;max-width:100%;line-height:1.3;font-weight:600;font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .5rem;border:1px solid currentColor;box-shadow:inset 0 0 0 2px var(--bone),inset 0 0 0 3px currentColor;mix-blend-mode:multiply}}
+.ok{{color:var(--ok)}}.hold{{color:var(--hold)}}.no{{color:var(--no)}}.none{{color:var(--none)}}
+table{{width:100%;border-collapse:collapse;font-size:.9375rem}}
+.board{{overflow-x:auto}}
+table{{border:1px solid var(--rule)}}
+th{{text-align:left;font-variant:all-small-caps;letter-spacing:.06em;font-weight:600;color:var(--ink-2);padding:.45rem .75rem;border-bottom:1px solid var(--ink);white-space:nowrap}}
+th.n{{text-align:right}}
+td{{padding:.5rem .75rem;border-bottom:1px solid var(--rule);vertical-align:top}}
+td:first-child{{white-space:nowrap}}td .addr{{word-break:normal;white-space:nowrap;font-size:.8125rem}}
+tr:last-child td{{border-bottom:0}}
+td.n{{text-align:right;white-space:nowrap}}td.v{{font-weight:600;letter-spacing:.04em;white-space:nowrap}}
+tr.no td{{color:var(--no)}}tr.no td.v{{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em}}
+tr.ok td.v{{color:var(--ok)}}tr.hold td.v{{color:var(--hold)}}tr.none td{{color:var(--none)}}
+td i{{display:block;font-style:normal;font-weight:600;font-size:.875rem}}
+.empty{{color:var(--ink-2);font-style:italic}}
+.margin{{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:2.5rem;align-items:start}}
+.margin>main,.margin>aside{{min-width:0}}
+.margin>aside{{padding-top:1.6rem}}
+.slip,.tariff{{font-size:.875rem;color:var(--ink-2);border-top:1px solid var(--ink);padding-top:.5rem;margin-bottom:1.5rem}}
+.sim{{font-variant:all-small-caps;letter-spacing:.06em;color:var(--none);margin-left:.4rem}}
+.tariff dl{{margin:.5rem 0 0}}.tariff dt{{font-variant:all-small-caps;letter-spacing:.05em}}.tariff dd{{margin:0 0 .5rem;font-family:inherit}}
+td.empty{{white-space:normal}}
+@media (max-width:52rem){{.margin{{grid-template-columns:1fr}}.card{{grid-template-columns:minmax(0,1fr) 7.5rem}}.card .addr{{font-size:.72rem}}.totals{{grid-template-columns:1fr 1fr}}.totals div:nth-child(2){{border-right:0}}.totals div:nth-child(3){{padding-left:0}}}}
+</style></head><body><div class="page">
+<header class="mast"><h1>{brand}<small>registry</small></h1><nav><a href="/">Counter</a> &middot; <time datetime="{today}">{today}</time></nav></header>
+<div class="totals" id="summary">
+<div><span>journal entries</span><b id="jobs">{jobs}</b></div>
+<div><span>invoices settled</span><b id="settlements">{settles}</b></div>
+<div><span>verdicts given</span><b id="verdicts">{verdicts}</b></div>
+<div><span>agents on file</span><b id="agents">{agents}</b></div>
+</div>
+<div class="margin">
+<main>
+<h2>Daybook <span>latest verdicts, newest first</span></h2>
+<div class="board"><table id="verdict-log"><thead><tr><th>entered</th><th>verdict</th><th>counterparty</th><th class="n">balance</th><th class="n">counter USDC</th></tr></thead><tbody>{verdict_rows}</tbody></table></div>
+<h2>Registry <span>worst balance first &middot; stamped under rubric v{version}</span></h2>
+<section class="registry" id="profiles">{cards}</section>
+<h2>Receipts <span>invoices the storefront saw paid</span></h2>
+<div class="board"><table id="settlement-log"><thead><tr><th>settled</th><th>payer</th><th class="n">paid</th><th>transaction</th></tr></thead><tbody>{settle_rows}</tbody></table></div>
+</main>
+<aside>
+{slip}
+<div class="tariff"><b>Tariff.</b> A risk report costs what the memory behind it is worth.
+<dl><dt>blind</dt><dd>${blind} &mdash; nothing remembered</dd><dt>per remembered event</dt><dd>+${per}, cap ${cap}</dd><dt>ask</dt><dd><code>GET /quote/&lt;address&gt;</code> free &middot; <code>GET /risk/&lt;address&gt;?budget=50</code> 402 until paid, USDC on Base Sepolia to <code class="addr">{pay_to}</code></dd></dl>
+</div>
+</aside>
+</div>
+</div></body></html>"""
 
 
 async def pay(url: str) -> None:

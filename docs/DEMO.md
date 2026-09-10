@@ -140,9 +140,10 @@ python -m neraca.server                   # walks the 402, pays the memory-set p
 python -m neraca analis | grep 0x6505     # the payer now has a profile: it settled an invoice
 ```
 
-Open `http://localhost:8402/` in the browser: the status page is rendered
-straight from memory — profiles, the verdict log, the settlement it just
-witnessed. Then open a Basescan link. Rehearsal proofs, all confirmed:
+Open `http://localhost:8402/` in the browser: the counter ticket — type
+`0xKLIENB…B`, press *Ask the tariff*, the ticket comes back stamped with the
+memory-set price. Then `/registry`: index cards, the daybook, and the receipt
+it just witnessed, all rendered straight from memory. Then open a Basescan link. Rehearsal proofs, all confirmed:
 
 - stake: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
 - x402 settlement, memory-priced: https://sepolia.basescan.org/tx/0xb2c5915ac7c22f2236c97fec70f3e8d4945f2d6cbfa6ffdc9dbfb1a271878a07

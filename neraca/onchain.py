@@ -166,6 +166,10 @@ def _stake_with_key(counterparty: str, amount_usdc: float, amount: int, m) -> di
 
     acct = Account.from_key(os.environ["NERACA_STAKE_KEY"])
     vault = _vault_address(acct.address)
+    if os.environ.get(DRY_RUN):
+        tx_hash = _dry("guarantee stake", {"from": acct.address, "to": USDC_SEPOLIA,
+                                            "data": _erc20_transfer_data(vault, amount), "chainId": 84532})
+        return {"tx": tx_hash, "dry_run": True, "from": acct.address, "vault": vault, "amount_usdc": amount_usdc}
     w3 = Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC))
     tx = {
         "to": Web3.to_checksum_address(USDC_SEPOLIA),
@@ -176,15 +180,11 @@ def _stake_with_key(counterparty: str, amount_usdc: float, amount: int, m) -> di
         "maxPriorityFeePerGas": w3.to_wei(0.001, "gwei"),
         "gas": 100_000,
     }
-    signed = acct.sign_transaction(tx)
     try:
-        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
-    except Exception as e:
-        raise SystemExit(f"stake did not broadcast: {e} - is {acct.address} funded with "
-                         "Base Sepolia ETH for gas and USDC to stake? "
-                         "`python -m neraca.onchain wallet` prints both balances")
-    if not tx_hash.startswith("0x"):
-        tx_hash = "0x" + tx_hash
+        tx_hash = _broadcast(w3, acct.sign_transaction(tx).raw_transaction, "guarantee stake")
+    except SystemExit as e:
+        raise SystemExit(f"{e} - is {acct.address} funded with Base Sepolia ETH for gas and USDC "
+                         "to stake? `python -m neraca.onchain wallet` prints both balances")
     m.write_event(acted=[f"staked {amount_usdc} USDC guarantee on {counterparty}"],
                   extra={"kind": "guarantee_stake", "counterparty": counterparty,
                          "amount_usdc": amount_usdc, "tx": tx_hash})
@@ -234,18 +234,42 @@ def _sepolia_signer(which: str = "stake"):
     return Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC)), Account.from_key(key)
 
 
-def _send(w3, acct, fn) -> str:
+DRY_RUN = "NERACA_DRY_RUN"   # set to anything: build and print every transaction, send nothing
+
+
+def _dry(label: str, tx: dict) -> str:
+    print(json.dumps({"dry_run": label, "tx": {k: (v.hex() if hasattr(v, "hex") else v) for k, v in tx.items()}},
+                     indent=2, default=str))
+    return "0x" + "00" * 32
+
+
+def _broadcast(w3, signed_raw, label: str) -> str:
+    """Send once; on a transport error, once more; then surface the attempt.
+    Never invents a hash."""
+    last = None
+    for attempt in (1, 2):
+        try:
+            h = w3.eth.send_raw_transaction(signed_raw).hex()
+            return h if h.startswith("0x") else "0x" + h
+        except Exception as e:
+            last = e
+            if "insufficient funds" in str(e) or "nonce" in str(e).lower():
+                break  # not transient - retrying would only repeat the refusal
+    raise SystemExit(f"{label} did not broadcast after {attempt} attempt(s): {last}")
+
+
+def _send(w3, acct, fn, label: str = "transaction") -> str:
+    if os.environ.get(DRY_RUN):
+        return _dry(label, {"from": acct.address, "to": fn.address, "data": fn._encode_transaction_data(), "chainId": 84532})
     tx = fn.build_transaction({
         "from": acct.address, "chainId": 84532,
         "nonce": w3.eth.get_transaction_count(acct.address),
         "maxFeePerGas": w3.eth.gas_price * 2, "maxPriorityFeePerGas": w3.to_wei(0.001, "gwei"),
     })
-    signed = acct.sign_transaction(tx)
-    h = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
-    h = h if h.startswith("0x") else "0x" + h
+    h = _broadcast(w3, acct.sign_transaction(tx).raw_transaction, label)
     rc = w3.eth.wait_for_transaction_receipt(h, timeout=120)
     if rc.status != 1:
-        raise SystemExit(f"transaction reverted: {BASESCAN}{h}")
+        raise SystemExit(f"{label} reverted: {BASESCAN}{h}")
     return h
 
 
@@ -265,7 +289,7 @@ def erc8004_identity(agent_uri: str = "https://github.com/PugarHuda/neraca", sig
         return known | {"already_registered": True}
     w3, acct = _sepolia_signer(signer)
     identity = w3.eth.contract(address=ERC8004_IDENTITY, abi=_IDENTITY_ABI)
-    tx = _send(w3, acct, identity.functions.register(agent_uri))
+    tx = _send(w3, acct, identity.functions.register(agent_uri), "ERC-8004 register")
     from web3.logs import DISCARD  # the receipt also carries ERC-721 Transfer/MetadataSet logs
     rc = w3.eth.get_transaction_receipt(tx)
     agent_id = identity.events.Registered().process_receipt(rc, errors=DISCARD)[0]["args"]["agentId"]

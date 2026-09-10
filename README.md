@@ -105,13 +105,16 @@ scenario, a live Base mainnet ACP scan, the ACP directory) and copies it to
 `/tmp` on cold start: reads are real memory as of the deploying commit;
 writes live only as long as the instance. The bureau that remembers across
 sessions runs where its disk persists — locally, with the commands below.
-`/quote/<addr>` and the 402 on `/risk/<addr>` are live there; the status page
-says so on its first line.
+`/` is the front door — a counter ticket: type an address, the bureau prints
+what its memory is worth (a real GET form, no JavaScript). `/registry` is the
+bureau's index cards, daybook and receipts, rendered straight from memory.
+`/quote/<addr>` and the 402 on `/risk/<addr>` are live there; the registry
+page says on its first line that the deployment is a snapshot.
 
-The storefront's status page, rendered straight from memory (captured by the
-Playwright QA pass):
+The registry, rendered straight from memory (designed with Impeccable in the
+ledger / credit-bureau world the owner chose; captured by the Playwright QA pass):
 
-![status page](docs/status-page.png)
+![registry](docs/status-page.png)
 
 ## Run it
 
@@ -161,7 +164,7 @@ python -m neraca analis            # real addresses get real scores
 python -m neraca ask 0x5FaCEbD66D78A69b400dC702049374B95745FBc5 --budget 50   # known_as: aixbt
 
 # the storefronts (see .env.example for keys):
-uvicorn neraca.server:app --port 8402      # x402 paywall + status page at /
+uvicorn neraca.server:app --port 8402      # x402 paywall; / counter ticket, /registry the bureau's cards
 curl localhost:8402/quote/<addr>           # free: what memory says the answer costs
 python -m neraca.server                    # the buyer: walks the 402 and pays (NERACA_BUYER_KEY)
 python -m neraca.onchain b20               # live B20 read, Base mainnet, free

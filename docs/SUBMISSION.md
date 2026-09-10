@@ -134,7 +134,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 - [x] ERC-8004: NERACA registered as agent #9215: https://sepolia.basescan.org/tx/0x616df8a005aef6f4606eca64cb96bf974ce7cd04d861898b2358dcdad9a5d473
 - [x] ERC-8004: memory-backed feedback published on agent #9216: https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8dc3915c7dda9ca6cfe15d1d8fe609a1615c
 - [x] Live ACP jobs read off Base mainnet contracts, no registration (`python -m neraca chain`)
-- [x] Public deployment: https://neraca-psi.vercel.app (status page, /quote, 402 on /risk)
+- [x] Public deployment: https://neraca-psi.vercel.app (landing with a live quote form, /registry, /quote, 402 on /risk) — designed with Impeccable, reviewed and documented
 - [x] NERACA as an MCP server (`python -m neraca.mcp_server`), x402 Bazaar discovery declared
 - [ ] ACP agents registered → `neraca.acp seller` (provider side; the observer side needs nothing)
 - [ ] Demo video 2–5 min, recall beat as ONE unedited take with commit hash + clock
