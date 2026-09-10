@@ -107,7 +107,8 @@ which is the deletion test judges will run themselves.
 
 | Needs | Where | Unlocks |
 |---|---|---|
-| `CDP_API_KEY_ID` / `_SECRET` / `CDP_WALLET_SECRET` | portal.cdp.coinbase.com | `onchain wallet`, `onchain stake`, faucet for the x402 buyer |
+| `NERACA_STAKE_KEY` + `NERACA_VAULT` | `python -m neraca.onchain wallet` mints them; faucet at alchemy.com/faucets/base-sepolia and faucet.circle.com | `onchain stake` — a real USDC transfer, no account anywhere |
+| *or* `CDP_API_KEY_ID` / `_SECRET` / `CDP_WALLET_SECRET` | portal.cdp.coinbase.com | the same stake through CDP server wallets, with a built-in faucet |
 | `NERACA_PAY_TO` | output of `python -m neraca.onchain wallet` | the x402 paywall's payee |
 | `NERACA_BUYER_KEY` | any Base Sepolia key, faucet it with the CDP creds | the paying client in step 5 |
 | ACP entity IDs + whitelisted key | app.virtuals.io/acp/new | `python -m neraca.acp seller` (second partner multiplier) |

@@ -44,10 +44,12 @@ files (WARM), doctrine (REFERENCE), open negotiations (HOT), and a morgue
 
 ## Partner stacks
 
-- **Base** — [`neraca/onchain.py`](neraca/onchain.py): CDP server wallets on
-  Base Sepolia; the guarantee stake is a real USDC `transfer()` (wallet
-  operation + contract interaction, Basescan link printed), plus a live B20
-  read of Coinbase Tokenized Stocks on Base mainnet.
+- **Base** — [`neraca/onchain.py`](neraca/onchain.py): the guarantee stake is
+  a real USDC `transfer()` on Base Sepolia (wallet operation + contract
+  interaction, Basescan link printed), signed either by a local key
+  (`NERACA_STAKE_KEY` — no account, no portal) or by a CDP server wallet;
+  plus a live B20 read of Coinbase Tokenized Stocks on Base mainnet that needs
+  no wallet at all.
   [`neraca/server.py`](neraca/server.py): the risk endpoint is x402-paywalled
   (test USDC, x402.org facilitator).
 - **Virtuals Protocol** — [`neraca/acp.py`](neraca/acp.py): NERACA is a

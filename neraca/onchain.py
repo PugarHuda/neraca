@@ -6,8 +6,13 @@
 - b20_read(): free eth_call against Coinbase Tokenized Stocks (B20 standard)
   on Base mainnet; no wallet, no gas.
 
+Two ways to hold the wallet, pick either:
+  - NERACA_STAKE_KEY: any Base Sepolia private key. No account, no portal.
+  - CDP_API_KEY_ID / _SECRET / CDP_WALLET_SECRET: CDP server wallets.
+The key path wins when both are set. The stake itself is identical either way -
+a real USDC transfer() on Base Sepolia, gated by memory before either fires.
+
 CLI:  python -m neraca.onchain wallet|b20|stake <counterparty> <usdc>
-Env:  CDP_API_KEY_ID, CDP_API_KEY_SECRET, CDP_WALLET_SECRET (portal.cdp.coinbase.com)
 """
 
 import asyncio
@@ -20,6 +25,7 @@ import httpx
 USDC_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
 AAPLC_B20 = "0xb200000000000000000000C2e324d24d7eEcd1fb"  # Coinbase Tokenized Stock AAPL
 BASE_MAINNET_RPC = "https://mainnet.base.org"
+BASE_SEPOLIA_RPC = "https://sepolia.base.org"
 BASESCAN = "https://sepolia.basescan.org/tx/"
 
 
@@ -35,6 +41,43 @@ def _erc20_transfer_data(to: str, amount_base_units: int) -> str:
     return ("0xa9059cbb"
             + to.lower().removeprefix("0x").rjust(64, "0")
             + hex(amount_base_units)[2:].rjust(64, "0"))
+
+
+def local_wallet() -> dict:
+    """No-portal path: mint (or report) the staking wallet and its vault.
+
+    Prints what to paste into .env and what to point a faucet at. Run it again
+    after fauceting - it reports balances, so you can see the funds land.
+    """
+    from eth_account import Account
+    from web3 import Web3
+
+    w3 = Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC))
+
+    def balances(addr: str) -> dict:
+        usdc = w3.eth.call({"to": Web3.to_checksum_address(USDC_SEPOLIA),
+                            "data": "0x70a08231" + addr.lower().removeprefix("0x").rjust(64, "0")})
+        return {"eth": w3.from_wei(w3.eth.get_balance(Web3.to_checksum_address(addr)), "ether"),
+                "usdc": int(usdc.hex() or "0", 16) / 1_000_000}
+
+    key = os.environ.get("NERACA_STAKE_KEY")
+    if not key:
+        stake, vault = Account.create(), Account.create()
+        print("Two fresh Base Sepolia wallets. Paste these into .env:\n")
+        print(f"NERACA_STAKE_KEY={stake.key.hex()}")
+        print(f"NERACA_VAULT={vault.address}")
+        print(f"NERACA_BUYER_KEY={vault.key.hex()}   # doubles as the x402 buyer\n")
+        print(f"Then faucet the staking wallet with Base Sepolia ETH and USDC:\n"
+              f"  {stake.address}\n"
+              f"  ETH:  https://www.alchemy.com/faucets/base-sepolia\n"
+              f"  USDC: https://faucet.circle.com  (pick Base Sepolia)\n"
+              f"Re-run this command to watch the balances land.")
+        return {"staking_wallet": stake.address, "vault": vault.address, "funded": False}
+
+    acct = Account.from_key(key)
+    vault = os.environ.get("NERACA_VAULT") or os.environ.get("NERACA_PAY_TO")
+    return {"staking_wallet": acct.address, "balances": balances(acct.address),
+            "vault": vault, "vault_balances": balances(vault) if vault else None}
 
 
 async def wallet() -> dict:
@@ -65,11 +108,14 @@ async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
         raise SystemExit(f"no open APPROVE_WITH_GUARANTEE negotiation for {counterparty} "
                          f"(found: {verdict}) - the stake is priced by memory, not typed by hand")
 
+    amount = int(amount_usdc * 1_000_000)
+    if os.environ.get("NERACA_STAKE_KEY"):
+        return _stake_with_key(counterparty, amount_usdc, amount, m)
+
     _require_creds()
     from cdp import CdpClient
     from cdp.evm_transaction_types import TransactionRequestEIP1559
 
-    amount = int(amount_usdc * 1_000_000)
     async with CdpClient() as cdp:
         makelar = await cdp.evm.get_or_create_account(name="neraca-makelar")
         vault = await cdp.evm.get_or_create_account(name="neraca-vault")
@@ -85,6 +131,50 @@ async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
                          "amount_usdc": amount_usdc, "tx": str(tx_hash)})
     return {"tx": str(tx_hash), "explorer": BASESCAN + str(tx_hash),
             "from": makelar.address, "vault": vault.address, "amount_usdc": amount_usdc}
+
+
+def _vault_address(sender: str) -> str:
+    vault = os.environ.get("NERACA_VAULT") or os.environ.get("NERACA_PAY_TO")
+    if not vault:
+        raise SystemExit(
+            "set NERACA_VAULT to the address the guarantee is escrowed to - any "
+            "second address you control (`python -m neraca.onchain wallet` mints one)")
+    if vault.lower() == sender.lower():
+        raise SystemExit("NERACA_VAULT must differ from the staking wallet")
+    return vault
+
+
+def _stake_with_key(counterparty: str, amount_usdc: float, amount: int, m) -> dict:
+    """Same USDC transfer, signed locally. No portal, no account, no SDK keys."""
+    from eth_account import Account
+    from web3 import Web3
+
+    acct = Account.from_key(os.environ["NERACA_STAKE_KEY"])
+    vault = _vault_address(acct.address)
+    w3 = Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC))
+    tx = {
+        "to": Web3.to_checksum_address(USDC_SEPOLIA),
+        "data": _erc20_transfer_data(vault, amount),
+        "chainId": 84532,
+        "nonce": w3.eth.get_transaction_count(acct.address),
+        "maxFeePerGas": w3.eth.gas_price * 2,
+        "maxPriorityFeePerGas": w3.to_wei(0.001, "gwei"),
+        "gas": 100_000,
+    }
+    signed = acct.sign_transaction(tx)
+    try:
+        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+    except Exception as e:
+        raise SystemExit(f"stake did not broadcast: {e} - is {acct.address} funded with "
+                         "Base Sepolia ETH for gas and USDC to stake? "
+                         "`python -m neraca.onchain wallet` prints both balances")
+    if not tx_hash.startswith("0x"):
+        tx_hash = "0x" + tx_hash
+    m.write_event(acted=[f"staked {amount_usdc} USDC guarantee on {counterparty}"],
+                  extra={"kind": "guarantee_stake", "counterparty": counterparty,
+                         "amount_usdc": amount_usdc, "tx": tx_hash})
+    return {"tx": tx_hash, "explorer": BASESCAN + tx_hash,
+            "from": acct.address, "vault": vault, "amount_usdc": amount_usdc}
 
 
 def b20_read() -> dict:
@@ -115,7 +205,12 @@ def main() -> None:
     if cmd == "b20":
         print(json.dumps(b20_read(), indent=2))
     elif cmd == "wallet":
-        print(json.dumps(asyncio.run(wallet()), indent=2))
+        if os.environ.get("CDP_API_KEY_ID") and not os.environ.get("NERACA_STAKE_KEY"):
+            print(json.dumps(asyncio.run(wallet()), indent=2))
+        else:
+            out = local_wallet()
+            if out.get("funded") is not False:
+                print(json.dumps(out, indent=2, default=str))
     elif cmd == "stake":
         print(json.dumps(asyncio.run(stake_guarantee(sys.argv[2], float(sys.argv[3]))), indent=2))
     else:
