@@ -113,3 +113,44 @@ def test_analis_watch_reacts_to_another_process(m):
     pengamat.observe([pengamat.dispute_event()], m)   # "another process" writes
     seen, profiles = analis.refresh(m, seen)
     assert seen == 28 and profiles[pengamat.KLIEN_B]["score"] < before
+
+
+def test_acp_phases_land_in_the_journal(m):
+    """The Virtuals leg, provable without a registration: an ACP job phase
+    becomes a COLD event PENGAMAT can score. Judges cannot hire our agent, so
+    the mapping is asserted here instead."""
+    import types
+
+    from neraca import acp
+    from neraca.memory import job_events
+
+    for acp_phase, ours in (("REQUEST", "CREATED"), ("TRANSACTION", "FUNDED"),
+                            ("EVALUATION", "DELIVERED"), ("COMPLETED", "COMPLETED"),
+                            ("REJECTED", "REJECTED")):
+        acp._journal(types.SimpleNamespace(
+            id=f"acp-{acp_phase}", phase=types.SimpleNamespace(name=acp_phase),
+            client_address="0xCLIENT", provider_address="0xPROVIDER", price=1.5))
+        assert any(e["extra"]["job_id"] == f"acp-{acp_phase}"
+                   and e["extra"]["phase"] == ours for e in job_events(m))
+
+    # an unknown phase is ignored, never journaled as something it is not
+    before = len(job_events(m))
+    acp._journal(types.SimpleNamespace(
+        id="acp-weird", phase=types.SimpleNamespace(name="SOMETHING_NEW"),
+        client_address="0xCLIENT", provider_address="0xPROVIDER", price=1.0))
+    assert len(job_events(m)) == before
+
+
+def test_risk_endpoint_is_paywalled(m):
+    """The Base/x402 leg: /risk is 402 until paid, with real v2 requirements."""
+    import base64
+    import json
+
+    from fastapi.testclient import TestClient
+
+    from neraca.server import app
+    r = TestClient(app).get("/risk/0xanyone?budget=50")
+    assert r.status_code == 402
+    quote = json.loads(base64.b64decode(r.headers["payment-required"]))
+    assert quote["x402Version"] == 2
+    assert quote["accepts"][0]["network"] == "eip155:84532"   # Base Sepolia

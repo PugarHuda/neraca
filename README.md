@@ -69,7 +69,7 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 #  -> DECLINE, reasons: ["rejected delivered job sim-b1"]  <- recalled, not computed
 
 python -m neraca report <addr>   # the remembered evidence behind any verdict
-pytest                            # 7 tests, incl. the deletion test
+pytest                            # 9 tests, incl. the deletion test
 
 # three processes coordinating with memory as the only wire.
 # the journal is append-only, so this act needs a fresh one:
