@@ -76,8 +76,15 @@ def local_wallet() -> dict:
 
     acct = Account.from_key(key)
     vault = os.environ.get("NERACA_VAULT") or os.environ.get("NERACA_PAY_TO")
+    if not vault:
+        # you brought your own key; the escrow side just needs an address to receive
+        fresh = Account.create()
+        print(f"No vault set. Paste this into .env:{chr(10)}")
+        print(f"NERACA_VAULT={fresh.address}")
+        print(f"NERACA_BUYER_KEY={fresh.key.hex()}   # doubles as the x402 buyer{chr(10)}")
+        vault = fresh.address
     return {"staking_wallet": acct.address, "balances": balances(acct.address),
-            "vault": vault, "vault_balances": balances(vault) if vault else None}
+            "vault": vault, "vault_balances": balances(vault)}
 
 
 async def wallet() -> dict:
