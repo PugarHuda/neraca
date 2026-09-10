@@ -39,6 +39,17 @@ def _price(profile: dict | None, counterparty: str, budget: float, rubric: dict)
     return decision | {"counterparty": counterparty, "score": score, "reasons": reasons}
 
 
+def _known_as(counterparty: str, m) -> dict:
+    """REFERENCE: who the marketplace says this address is. Its claims ride
+    beside NERACA's remembered score, never inside it."""
+    from .memory import get_directory
+    entry = get_directory(m).get(counterparty.lower())
+    if not entry:
+        return {}
+    return {"known_as": entry.get("name"),
+            "marketplace_claims": {k: entry.get(k) for k in ("success_rate", "jobs", "buyers")}}
+
+
 def decide(counterparty: str, budget: float, m=None, as_of: str | None = None) -> dict:
     """Price the risk of dealing with `counterparty` for `budget` USDC.
 
@@ -63,7 +74,7 @@ def decide(counterparty: str, budget: float, m=None, as_of: str | None = None) -
         from .analis import build_profiles
         profile = build_profiles(job_events(m), rubric, settlement_events(m)).get(counterparty)
 
-    decision = _price(profile, counterparty, budget, rubric)
+    decision = _price(profile, counterparty, budget, rubric) | _known_as(counterparty, m)
     # HOT tier: the in-flight negotiation state this decision opens
     m.set_state(f"negotiation:{counterparty}", decision)
     # COLD tier: the verdict itself is an event, so the bureau can be graded on it

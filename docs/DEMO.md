@@ -110,7 +110,10 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50 --as
 python -m neraca chain
 #   PENGAMAT read Base mainnet blocks N..M: 35 jobs created, ... -> 35 new observations (cursor saved in HOT memory)
 python -m neraca chain                   # again: a handful of blocks - it resumed from memory
+python -m neraca directory               # public ACP directory -> REFERENCE: names + the marketplace's own metrics
 python -m neraca analis | head           # real Base addresses, real scores
+python -m neraca ask 0x5FaCEbD66D78A69b400dC702049374B95745FBc5 --budget 50
+#   known_as: aixbt, marketplace_claims: {success_rate 91.5, jobs 32806} - beside NERACA's own score, never inside it
 ```
 
 These are the live Virtuals ACP contracts on Base mainnet, read over a public
@@ -163,7 +166,7 @@ Rehearsal proof: https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8
 
 ## 9 · Close (10s)
 
-Three agents, one shared memory, no other channel. `pytest` — 16 tests, one of
+Three agents, one shared memory, no other channel. `pytest` — 17 tests, one of
 which is the deletion test judges will run themselves.
 
 ## Credential checklist (do this before recording)

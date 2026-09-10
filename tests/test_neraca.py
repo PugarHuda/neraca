@@ -310,3 +310,22 @@ def test_storefront_is_priced_by_memory(m):
     page = c.get("/")
     assert page.status_code == 200 and "text/html" in page.headers["content-type"]
     assert pengamat.KLIEN_B in page.text and 'id="profiles"' in page.text
+
+
+def test_directory_names_real_addresses_without_mixing_claims(m):
+    """The marketplace's own numbers ride beside NERACA's score, never inside it."""
+    from neraca import analis, makelar, pengamat
+
+    def fetch(keyword):
+        return [{"walletAddress": "0xABCDEF", "name": "aixbt",
+                 "metrics": {"successRate": 91.5, "successfulJobCount": 32806, "uniqueBuyerCount": 900}}]
+
+    assert pengamat.refresh_directory(m, keywords=("x",), fetch=fetch) == {"entries": 1, "new": 1, "skipped": []}
+    assert pengamat.refresh_directory(m, keywords=("x",), fetch=fetch)["new"] == 0   # idempotent
+
+    pengamat.observe([dict(job_id="j1", phase="CREATED", client_addr="0xClient", provider="0xabcdef")], m)
+    analis.run(m)
+    d = makelar.decide("0xabcdef", 50, m)
+    assert d["known_as"] == "aixbt" and d["marketplace_claims"]["jobs"] == 32806
+    assert d["score"] == 50            # 32,806 marketplace jobs bought it nothing: NERACA saw one CREATED
+    assert "known_as" not in makelar.decide("0xClient", 50, m)

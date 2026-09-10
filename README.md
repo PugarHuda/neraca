@@ -27,6 +27,7 @@ doctrine and the product.
 | WARM | `read_events` in a loop | [`analis.py`](neraca/analis.py) `watch` | **the coordination bus**: ANALIS is handed nothing and reacts to what other processes write |
 | REFERENCE | `get_reference` / `set_reference` | [`memory.py`](neraca/memory.py) `get_rubric` · [`analis.py`](neraca/analis.py) `reflect` | the scoring doctrine — **versioned and revised by the bureau itself** when its past verdicts turn out wrong |
 | HOT | `set_state` / `get_state` | [`makelar.py`](neraca/makelar.py) · [`onchain.py`](neraca/onchain.py) · [`pengamat.py`](neraca/pengamat.py) · [`analis.py`](neraca/analis.py) | open negotiations (the USDC stake refuses to fire without one), the chain-scan cursor, the ERC-8004 identity, which verdicts were already graded |
+| REFERENCE | `set_reference` / `get_reference` | [`pengamat.py`](neraca/pengamat.py) `refresh_directory` · [`makelar.py`](neraca/makelar.py) `_known_as` | the public ACP marketplace directory (names, its own success metrics), kept **beside** NERACA's remembered score, never inside it |
 | ARCHIVE | `archive_entity` | [`analis.py`](neraca/analis.py) `run` | agents that go quiet past `stale_days` |
 | search | `search` (FTS5, cross-tier) | [`memory.py`](neraca/memory.py) `search` | `python -m neraca search <anything>` |
 
@@ -107,7 +108,7 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
 
 python -m neraca report <addr>          # the remembered evidence behind any verdict
 python -m neraca search rejected        # FTS5 across every tier
-pytest                                  # 16 tests, incl. the deletion test
+pytest                                  # 17 tests, incl. the deletion test
 
 # three processes coordinating with memory as the only wire.
 # the journal is append-only, so this act needs a fresh one:
@@ -134,7 +135,9 @@ python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50 --as
 
 # real agents, real jobs, no keys: the live ACP contracts on Base mainnet
 python -m neraca chain             # resumable; cursor lives in HOT memory
+python -m neraca directory         # the public ACP directory -> REFERENCE (names, marketplace metrics)
 python -m neraca analis            # real addresses get real scores
+python -m neraca ask 0x5FaCEbD66D78A69b400dC702049374B95745FBc5 --budget 50   # known_as: aixbt
 
 # the storefronts (see .env.example for keys):
 uvicorn neraca.server:app --port 8402      # x402 paywall + status page at /

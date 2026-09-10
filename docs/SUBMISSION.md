@@ -125,7 +125,7 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 
 - [x] Public repo, MIT, real commit history
 - [x] README points to where memory is written/read (top section)
-- [x] Deletion test in the suite (16/16 passing)
+- [x] Deletion test in the suite (17/17 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
 - [x] Guarantee stake executed on Base Sepolia: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678

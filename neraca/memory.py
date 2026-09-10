@@ -54,6 +54,24 @@ def get_rubric(m: MemoryClient) -> dict:
     return {**DEFAULT_RUBRIC, **body}  # a rubric written by an older NERACA still has every knob
 
 
+DIRECTORY_KEY = "acp-directory"
+
+
+def get_directory(m: MemoryClient) -> dict:
+    """REFERENCE: the public ACP marketplace directory as last refreshed -
+    wallet -> {name, success_rate, jobs}. The marketplace's own claims, kept
+    apart from what NERACA remembers seeing."""
+    ref = m.get_reference(DIRECTORY_KEY)
+    if ref is None:
+        return {}
+    body = ref["body"]
+    return json.loads(body) if isinstance(body, str) else body
+
+
+def set_directory(m: MemoryClient, directory: dict) -> None:
+    m.set_reference(DIRECTORY_KEY, directory)
+
+
 def _events(m: MemoryClient, kind: str, limit: int, until: str | None) -> list[dict]:
     # ponytail: full scan per call; add a since-cursor if the journal outgrows hackathon scale
     evs = [e for e in m.read_events(limit=limit, until=until)

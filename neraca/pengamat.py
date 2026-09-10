@@ -115,6 +115,54 @@ def chain_logs_to_events(created: list, phases: list, lookup,
     return events
 
 
+ACP_DIRECTORY_API = "https://acpx.virtuals.io/api/agents/v4/search"
+DIRECTORY_KEYWORDS = ("agent", "trading", "research", "data", "alpha", "risk",
+                      "market", "token", "defi", "ai", "analysis", "content")
+
+
+def refresh_directory(m=None, keywords=DIRECTORY_KEYWORDS, fetch=None) -> dict:
+    """Pull the public ACP marketplace directory into REFERENCE.
+
+    Names and the marketplace's own success metrics, keyed by wallet, so a
+    verdict on a real address can say who that is. What the marketplace
+    claims is stored beside - never mixed into - what NERACA remembers.
+    `fetch(keyword)` is injectable so the mapping is testable offline.
+    """
+    from datetime import datetime, timezone
+
+    from .memory import get_directory, set_directory
+
+    if fetch is None:
+        import httpx
+
+        def fetch(keyword: str) -> list[dict]:
+            r = httpx.get(ACP_DIRECTORY_API, params={"search": keyword, "top_k": 50}, timeout=40)
+            r.raise_for_status()
+            return r.json().get("data", [])
+
+    m = m or client()
+    directory = get_directory(m)
+    before = len(directory)
+    skipped = []
+    for kw in keywords:
+        try:
+            agents = fetch(kw)
+        except Exception as e:  # one slow keyword must not cost the whole refresh
+            skipped.append(f"{kw}: {type(e).__name__}")
+            continue
+        for a in agents:
+            metrics = a.get("metrics") or {}
+            directory[a["walletAddress"].lower()] = {
+                "name": a.get("name"),
+                "success_rate": metrics.get("successRate"),
+                "jobs": metrics.get("successfulJobCount"),
+                "buyers": metrics.get("uniqueBuyerCount"),
+                "refreshed": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+            }
+    set_directory(m, directory)
+    return {"entries": len(directory), "new": len(directory) - before, "skipped": skipped}
+
+
 def _hex(h) -> str:
     h = h.hex() if hasattr(h, "hex") else str(h)
     return h if h.startswith("0x") else "0x" + h

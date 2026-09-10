@@ -16,6 +16,7 @@ def main() -> None:
     sub.add_parser("witness", help="PENGAMAT witnesses KLIEN-B's rejection, live")
     p = sub.add_parser("chain", help="PENGAMAT reads real ACP jobs off Base mainnet (resumable)")
     p.add_argument("--lookback", type=int, default=20000, help="blocks to scan on first run")
+    sub.add_parser("directory", help="PENGAMAT pulls the public ACP marketplace directory into REFERENCE")
     sub.add_parser("analis", help="rebuild reputation profiles from the journal")
     sub.add_parser("watch", help="ANALIS as a live process: reacts when another process writes")
     sub.add_parser("reflect", help="ANALIS grades past verdicts and tunes the rubric in REFERENCE")
@@ -48,6 +49,11 @@ def main() -> None:
               f"{r['job_created']} jobs created, {r['phase_updates']} phase updates, "
               f"{r['memos_signed']} memos signed -> {r['journaled']} new observations "
               f"(cursor saved in HOT memory)")
+    elif args.cmd == "directory":
+        r = pengamat.refresh_directory(m)
+        print(f"ACP directory in REFERENCE: {r['entries']} agents ({r['new']} new) - "
+              f"`ask` on a real address now says who it is"
+              + (f"; skipped {r['skipped']}" if r["skipped"] else ""))
     elif args.cmd == "watch":
         analis.watch(m)
     elif args.cmd == "analis":
