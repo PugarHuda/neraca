@@ -1,0 +1,8 @@
+.venv
+data
+docs
+tests
+.playwright-mcp
+.pytest_cache
+.env
+*.png

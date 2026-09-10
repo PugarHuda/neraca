@@ -137,11 +137,13 @@ def home():
                            for v in reversed(verdicts[-10:]))
     settle_rows = "".join(row((s["ts"][:19], s["extra"]["payer"], f"${s['extra']['amount_usd']}",
                                s["extra"]["tx"][:18] + "…")) for s in reversed(settles[-10:]))
+    note = os.environ.get("NERACA_DEPLOYMENT_NOTE")
+    banner = f'<p id="deployment-note"><i>{e(note)}</i></p>' if note else ""
     return f"""<!doctype html><html><head><meta charset="utf-8"><title>NERACA</title>
 <style>body{{font:14px/1.4 system-ui,sans-serif;margin:2rem;max-width:72rem}}
 table{{border-collapse:collapse;margin:.5rem 0 1.5rem}}td,th{{border:1px solid #ccc;padding:.25rem .6rem;text-align:left}}
 code{{background:#eee;padding:0 .3rem}}</style></head><body>
-<h1>NERACA — trust bureau</h1>
+<h1>NERACA — trust bureau</h1>{banner}
 <p id="summary">Journal: <b id="jobs">{len(jobs)}</b> job observations,
 <b id="settlements">{len(settles)}</b> settlements, <b id="verdicts">{len(verdicts)}</b> verdicts.
 Profiles: <b id="agents">{len(agents)}</b>. Pay to <code>{e(PAY_TO)}</code> on {e(NETWORK)}.</p>

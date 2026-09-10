@@ -87,6 +87,16 @@ provider needs an ACP registration (`.env.example`).
 in the Identity Registry, published to the Reputation Registry, readable by
 any agent that speaks the standard.
 
+**Live on Vercel:** https://neraca-psi.vercel.app — the storefront as a public
+window into the bureau's memory. A Vercel Function has no durable disk, so
+the deployment carries a real snapshot of the Sibyl store (the demo
+scenario, a live Base mainnet ACP scan, the ACP directory) and copies it to
+`/tmp` on cold start: reads are real memory as of the deploying commit;
+writes live only as long as the instance. The bureau that remembers across
+sessions runs where its disk persists — locally, with the commands below.
+`/quote/<addr>` and the 402 on `/risk/<addr>` are live there; the status page
+says so on its first line.
+
 The storefront's status page, rendered straight from memory (captured by the
 Playwright QA pass):
 

@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 .env
 .playwright-mcp/
+
+.vercel/
+.env.local
