@@ -184,6 +184,126 @@ def _stake_with_key(counterparty: str, amount_usdc: float, amount: int, m) -> di
             "from": acct.address, "vault": vault, "amount_usdc": amount_usdc}
 
 
+# ---- ERC-8004 Trustless Agents: portable, on-chain reputation ----------------
+# Reference deployments on Base Sepolia (erc-8004/erc-8004-contracts).
+ERC8004_IDENTITY = "0x8004A818BFB912233c491871b3d84c89A494BD9e"
+ERC8004_REPUTATION = "0x8004B663056A597Dffe9eCcC1965A193B7388713"
+IDENTITY_KEY = "neraca:erc8004-identity"   # HOT: our agentId once registered
+_IDENTITY_ABI = [
+    {"type": "function", "name": "register", "stateMutability": "nonpayable",
+     "inputs": [{"name": "agentURI", "type": "string"}], "outputs": [{"name": "agentId", "type": "uint256"}]},
+    {"type": "function", "name": "ownerOf", "stateMutability": "view",
+     "inputs": [{"name": "tokenId", "type": "uint256"}], "outputs": [{"name": "", "type": "address"}]},
+    {"type": "event", "name": "Registered", "anonymous": False,
+     "inputs": [{"name": "agentId", "type": "uint256", "indexed": True},
+                {"name": "agentURI", "type": "string", "indexed": False},
+                {"name": "owner", "type": "address", "indexed": True}]},
+]
+_REPUTATION_ABI = [
+    {"type": "function", "name": "giveFeedback", "stateMutability": "nonpayable",
+     "inputs": [{"name": "agentId", "type": "uint256"}, {"name": "value", "type": "int128"},
+                {"name": "valueDecimals", "type": "uint8"}, {"name": "tag1", "type": "string"},
+                {"name": "tag2", "type": "string"}, {"name": "endpoint", "type": "string"},
+                {"name": "feedbackURI", "type": "string"}, {"name": "feedbackHash", "type": "bytes32"}],
+     "outputs": []},
+    {"type": "function", "name": "getSummary", "stateMutability": "view",
+     "inputs": [{"name": "agentId", "type": "uint256"}, {"name": "clientAddresses", "type": "address[]"},
+                {"name": "tag1", "type": "string"}, {"name": "tag2", "type": "string"}],
+     "outputs": [{"name": "count", "type": "uint64"}, {"name": "summaryValue", "type": "int128"},
+                 {"name": "summaryValueDecimals", "type": "uint8"}]},
+]
+
+
+def _sepolia_signer(which: str = "stake"):
+    """'stake' is NERACA's own key; 'buyer' is the demo counterparty's, so a
+    second identity can be registered by a different owner."""
+    from eth_account import Account
+    from web3 import Web3
+    var = {"stake": "NERACA_STAKE_KEY", "buyer": "NERACA_BUYER_KEY"}[which]
+    key = os.environ.get(var)
+    if not key:
+        raise SystemExit(f"set {var} (a funded Base Sepolia key) - ERC-8004 needs a signer")
+    return Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC)), Account.from_key(key)
+
+
+def _send(w3, acct, fn) -> str:
+    tx = fn.build_transaction({
+        "from": acct.address, "chainId": 84532,
+        "nonce": w3.eth.get_transaction_count(acct.address),
+        "maxFeePerGas": w3.eth.gas_price * 2, "maxPriorityFeePerGas": w3.to_wei(0.001, "gwei"),
+    })
+    signed = acct.sign_transaction(tx)
+    h = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+    h = h if h.startswith("0x") else "0x" + h
+    rc = w3.eth.wait_for_transaction_receipt(h, timeout=120)
+    if rc.status != 1:
+        raise SystemExit(f"transaction reverted: {BASESCAN}{h}")
+    return h
+
+
+def erc8004_identity(agent_uri: str = "https://github.com/PugarHuda/neraca", signer: str = "stake") -> dict:
+    """Register an ERC-8004 agent on Base Sepolia (once per signer).
+
+    signer='stake' registers NERACA itself; signer='buyer' registers the demo
+    counterparty under a different owner, so feedback about it is not
+    self-feedback. The agentId is remembered in HOT state; a second call
+    returns it instead of minting again.
+    """
+    from .memory import client
+    m = client()
+    key = IDENTITY_KEY if signer == "stake" else f"{IDENTITY_KEY}:{signer}"
+    known = (m.get_state(key) or {}).get("body")
+    if known:
+        return known | {"already_registered": True}
+    w3, acct = _sepolia_signer(signer)
+    identity = w3.eth.contract(address=ERC8004_IDENTITY, abi=_IDENTITY_ABI)
+    tx = _send(w3, acct, identity.functions.register(agent_uri))
+    from web3.logs import DISCARD  # the receipt also carries ERC-721 Transfer/MetadataSet logs
+    rc = w3.eth.get_transaction_receipt(tx)
+    agent_id = identity.events.Registered().process_receipt(rc, errors=DISCARD)[0]["args"]["agentId"]
+    out = {"agent_id": agent_id, "owner": acct.address, "agent_uri": agent_uri,
+           "tx": tx, "explorer": BASESCAN + tx, "registry": ERC8004_IDENTITY}
+    m.set_state(key, out)
+    m.write_event(acted=[f"registered ERC-8004 identity {agent_id}"],
+                  extra={"kind": "erc8004_identity", **out})
+    return out
+
+
+def erc8004_feedback(agent_id: int, budget: float = 50.0) -> dict:
+    """Publish NERACA's verdict on an ERC-8004 agent as on-chain reputation.
+
+    The subject is whoever owns the agentId. The feedback IS the memory-backed
+    score: no remembered history, nothing to publish - the bureau does not
+    rate strangers. Value is the score (0-100), tag1 the verdict, tag2 the
+    rubric version it was decided under, so the reputation is auditable.
+    """
+    from . import makelar
+    from .memory import client, get_rubric
+    m = client()
+    w3, acct = _sepolia_signer()
+    identity = w3.eth.contract(address=ERC8004_IDENTITY, abi=_IDENTITY_ABI)
+    subject = identity.functions.ownerOf(agent_id).call()
+    decision = makelar.decide(subject, budget, m)
+    if decision["verdict"] == makelar.NO_HISTORY:
+        raise SystemExit(f"agent {agent_id} is owned by {subject}, and NERACA remembers nothing "
+                         "about it - the bureau does not rate strangers")
+    if subject.lower() == acct.address.lower():
+        raise SystemExit("ERC-8004 forbids self-feedback: the subject is our own signer")
+    reputation = w3.eth.contract(address=ERC8004_REPUTATION, abi=_REPUTATION_ABI)
+    digest = w3.keccak(text=json.dumps(decision, sort_keys=True))
+    tx = _send(w3, acct, reputation.functions.giveFeedback(
+        agent_id, int(decision["score"]), 0, decision["verdict"],
+        f"rubric-v{get_rubric(m).get('version', 1)}",
+        "", "", digest))
+    count, value, dec = reputation.functions.getSummary(agent_id, [acct.address], "", "").call()
+    out = {"agent_id": agent_id, "subject": subject, "score": decision["score"],
+           "verdict": decision["verdict"], "tx": tx, "explorer": BASESCAN + tx,
+           "on_chain_summary": {"count": count, "value": value, "decimals": dec}}
+    m.write_event(acted=[f"published ERC-8004 feedback on agent {agent_id}"],
+                  extra={"kind": "erc8004_feedback", **out})
+    return out
+
+
 def b20_read() -> dict:
     """Free read of a live B20 tokenized stock on Base mainnet (no wallet/gas)."""
     def call(sig: str) -> str:
@@ -220,8 +340,14 @@ def main() -> None:
                 print(json.dumps(out, indent=2, default=str))
     elif cmd == "stake":
         print(json.dumps(asyncio.run(stake_guarantee(sys.argv[2], float(sys.argv[3]))), indent=2))
+    elif cmd == "identity":
+        print(json.dumps(erc8004_identity(*sys.argv[2:4]), indent=2))
+    elif cmd == "feedback":
+        print(json.dumps(erc8004_feedback(int(sys.argv[2]), float(sys.argv[3]) if len(sys.argv) > 3 else 50.0),
+                         indent=2, default=str))
     else:
-        raise SystemExit("usage: python -m neraca.onchain [b20|wallet|stake <counterparty> <usdc>]")
+        raise SystemExit("usage: python -m neraca.onchain [b20|wallet|stake <counterparty> <usdc>"
+                         "|identity [agentURI]|feedback <agentId> [budget]]")
 
 
 if __name__ == "__main__":

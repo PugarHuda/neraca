@@ -18,33 +18,37 @@ Repo: https://github.com/PugarHuda/neraca (MIT) · Deadline: 2026-09-10 23:59 UT
 
 **Memory walkthrough**
 
-> Persist: every observed agent-to-agent job phase as a COLD event
-> (`write_event`), the reputation profiles ANALIS derives from them as WARM
-> entities carrying full `score_history` (`set_entity`), the scoring rubric
-> itself as a REFERENCE record, and each open negotiation as HOT state.
+> Persist: every agent-to-agent job phase PENGAMAT observes as a COLD event
+> (`write_event`) — simulated, or read live off the Virtuals ACP contracts on
+> Base mainnet; every x402 invoice the storefront saw paid; every verdict
+> MAKELAR gives. ANALIS distils those into WARM reputation profiles with full
+> `score_history` (`set_entity`). The scoring doctrine lives in REFERENCE,
+> versioned. HOT state holds open negotiations, the chain-scan cursor, the
+> ERC-8004 identity and which verdicts were already graded.
 >
 > Recall (fresh session): a brand-new process runs
 > `python -m neraca ask 0xKLIENB...B --budget 50`, opens the same Sibyl store,
-> and reads a WARM profile plus COLD journal it never wrote — citing a
-> rejection event by job id from a session that has already been closed. The
-> three agents also run concurrently: `python -m neraca watch` leaves ANALIS
-> live with nothing handed to it, and when PENGAMAT writes one event from a
-> separate process it rebuilds every profile on its own. No queue, no RPC, no
-> shared file — memory is the entire bus between them.
+> and cites a rejection by job id from a session already closed. Three agents
+> also run concurrently: `python -m neraca watch` leaves ANALIS live with
+> nothing handed to it, and when PENGAMAT writes one event from a separate
+> process it rebuilds every profile on its own — memory is the entire bus.
 >
-> Changes the agent's decision by: one new REJECTED observation moves KLIEN-B
-> from 50 to 25 and flips the verdict from APPROVE_WITH_GUARANTEE (counter 25
-> USDC, 10% premium) to DECLINE citing "rejected delivered job sim-b1"; the
-> on-chain USDC guarantee stake then refuses to fire unless HOT memory still
-> holds an open APPROVE_WITH_GUARANTEE. The code never changed. The memory did.
+> Changes the agent's decision by: one REJECTED observation moves KLIEN-B from
+> 50 to 25 and flips APPROVE_WITH_GUARANTEE (counter 25 USDC, 10% premium) to
+> DECLINE; `reflect` then grades that verdict as a false approve and tightens
+> the rubric in REFERENCE to v2, so the next analysis scores B at 20. The x402
+> price is set by how much memory stands behind the answer; the USDC
+> guarantee stake refuses to fire without an open APPROVE_WITH_GUARANTEE in
+> HOT; the ERC-8004 feedback refuses to rate an agent with no remembered
+> profile. The code never changed. The memory did.
 
-**Memory primitives** — tick: `recall`, `entities`, `summarization`,
-`consolidation`, `temporal / time-travel`.
-Do **not** tick `semantic search` (no FTS5 query in the code) or `reflection`
-(the bureau judges others, never itself). Judges re-run the repo; a primitive
-you cannot point at is a liability. `temporal` is the thinnest of the five —
-it rests on timestamped `score_history` and the `stale_days` archive cutoff —
-untick it if you want to claim only what is unmistakable.
+**Memory primitives** — tick all seven, each is a command a judge can run:
+`recall` (`ask` in a fresh process), `entities` (`set_entity`/`get_entity`
+profiles), `semantic search` (`python -m neraca search <q>`, FTS5 across
+tiers), `temporal / time-travel` (`ask --as-of <iso>`, `read_events(until=)`),
+`summarization` (ANALIS distils the journal into profiles), `reflection`
+(`python -m neraca reflect` grades past verdicts), `consolidation` (the rubric
+revised and versioned in REFERENCE; stale agents archived).
 
 ## 1 · Memory implementation note (longer version, if a field wants prose)
 
@@ -121,12 +125,16 @@ Verify handles before posting: Sibyl `@sibylcap`, Base `@base`, Virtuals
 
 - [x] Public repo, MIT, real commit history
 - [x] README points to where memory is written/read (top section)
-- [x] Deletion test in the suite (10/10 passing)
+- [x] Deletion test in the suite (16/16 passing)
 - [x] Free Base leg verified live (`onchain b20` → AAPLc)
 - [x] x402 paywall returns a valid v2 402 with `payment-required` header
 - [x] Guarantee stake executed on Base Sepolia: https://sepolia.basescan.org/tx/0x8dbebb9d014f63bdc283900b2df3910b8c8d48ece75b9dfe07c8fafd698be678
 - [x] x402 402→paid leg settled on Base Sepolia: https://sepolia.basescan.org/tx/0x8758b13c150d2e29d90e97bfad9d153d9f72643a1696bb9f2b3c6b4aefd33513
-- [ ] ACP agents registered → `neraca.acp seller` (second stack, ×1.25)
+- [x] Memory-priced x402 settlement, journaled as an observation: https://sepolia.basescan.org/tx/0xb2c5915ac7c22f2236c97fec70f3e8d4945f2d6cbfa6ffdc9dbfb1a271878a07
+- [x] ERC-8004: NERACA registered as agent #9215: https://sepolia.basescan.org/tx/0x616df8a005aef6f4606eca64cb96bf974ce7cd04d861898b2358dcdad9a5d473
+- [x] ERC-8004: memory-backed feedback published on agent #9216: https://sepolia.basescan.org/tx/0x7c920e2d96ebbc31993b9ee6437b8dc3915c7dda9ca6cfe15d1d8fe609a1615c
+- [x] Live ACP jobs read off Base mainnet contracts, no registration (`python -m neraca chain`)
+- [ ] ACP agents registered → `neraca.acp seller` (provider side; the observer side needs nothing)
 - [ ] Demo video 2–5 min, recall beat as ONE unedited take with commit hash + clock
 - [ ] 2 public posts
 - [ ] Submitted via the private build-page link from registration

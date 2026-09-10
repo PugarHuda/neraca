@@ -174,3 +174,139 @@ def test_archived_agents_do_not_outrun_their_record(m):
     assert after["verdict"] == makelar.DECLINE
     assert "rejected delivered job sim-b1" in after["reasons"]
     assert makelar.decide("0xneverseen", 50, m)["verdict"] == makelar.NO_HISTORY
+
+
+def test_chain_logs_become_journal_events(m):
+    """PENGAMAT's real eyes: raw JobManager logs -> scorable observations.
+
+    A phase change on a job whose creation predates the scan window is
+    resolved through `lookup` (memory first, then the contract); an unmapped
+    phase is dropped, never guessed.
+    """
+    from neraca import pengamat
+
+    def log(args, tx):
+        return {"args": args, "transactionHash": bytes.fromhex(tx)}
+
+    created = [log({"jobId": 7, "client": "0xC1", "provider": "0xP1"}, "aa" * 32)]
+    phases = [
+        log({"jobId": 7, "oldPhase": 0, "newPhase": 5}, "bb" * 32),    # REJECTED, seen creation
+        log({"jobId": 9, "oldPhase": 2, "newPhase": 4}, "cc" * 32),    # COMPLETED, unseen creation
+        log({"jobId": 11, "oldPhase": 0, "newPhase": 1}, "dd" * 32),   # NEGOTIATION -> CREATED, skipped
+        log({"jobId": 13, "oldPhase": 0, "newPhase": 99}, "ee" * 32),  # unknown, dropped
+    ]
+    lookup = {7: ("0xC1", "0xP1", None), 9: ("0xC9", "0xP9", 12.5)}.get
+    events = pengamat.chain_logs_to_events(created, phases, lookup)
+
+    assert [(e["job_id"], e["phase"]) for e in events] == [
+        ("acp-7", "CREATED"), ("acp-7", "REJECTED"), ("acp-9", "COMPLETED")]
+    assert events[1]["client_addr"] == "0xC1" and events[1]["tx"] == "0x" + "bb" * 32
+    assert events[2]["provider"] == "0xP9" and events[2]["budget"] == 12.5
+
+    assert pengamat.observe(events, m) == 3
+    assert pengamat.observe(events, m) == 0        # idempotent on (job, phase)
+
+    # most of a job's life is memos: an approved signature moves the job, a
+    # refusal is a rejection, and a memo from before the window resolves its
+    # job through the contract (phase unknown, so only a refusal survives)
+    new_memos = [log({"memoId": 501, "jobId": 7, "sender": "0xP1", "memoType": 0, "nextPhase": 4}, "11" * 32)]
+    signed = [
+        log({"memoId": 501, "approver": "0xC1", "approved": True, "reason": "ok"}, "22" * 32),   # -> COMPLETED
+        log({"memoId": 777, "approver": "0xC9", "approved": False, "reason": "no"}, "33" * 32),  # old memo, refused
+        log({"memoId": 778, "approver": "0xC9", "approved": True, "reason": "ok"}, "44" * 32),   # old memo, phase unknown
+    ]
+    memo_job = {777: (9, None), 778: (9, None)}.get
+    events = pengamat.chain_logs_to_events([], [], lookup, new_memos, signed, memo_job)
+    assert [(e["job_id"], e["phase"]) for e in events] == [("acp-7", "COMPLETED"), ("acp-9", "REJECTED")]
+    assert events[0]["client_addr"] == "0xC1" and events[0]["provider"] == "0xP1"
+
+
+def test_settlement_is_an_observation(m):
+    """An agent that pays its x402 invoices has told the bureau something."""
+    from neraca import analis
+    from neraca.memory import record_settlement
+    assert record_settlement(m, payer="0xPAYER", payee="0xUS", amount_usd=0.05,
+                             tx="0xabc", resource="/risk/0xX") is not None
+    assert record_settlement(m, payer="0xPAYER", payee="0xUS", amount_usd=0.05,
+                             tx="0xabc", resource="/risk/0xX") is None       # idempotent on tx
+    p = analis.run(m)["0xPAYER"]
+    assert p["invoices_paid"] == 1 and p["score"] == 52
+
+
+def test_verdicts_are_journaled_and_graded(m):
+    """MAKELAR journals what it said; ANALIS grades it against what happened
+    next and revises the rubric in REFERENCE - remembered doctrine, versioned."""
+    from neraca import analis, makelar, pengamat
+    from neraca.memory import get_rubric, verdict_events
+
+    pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
+    analis.run(m)
+    assert makelar.decide(pengamat.KLIEN_B, 50, m)["verdict"] == makelar.APPROVE_WITH_GUARANTEE
+    assert [v["extra"]["verdict"] for v in verdict_events(m)] == [makelar.APPROVE_WITH_GUARANTEE]
+
+    assert analis.reflect(m)["graded"] == 0                # nothing happened yet: no grade
+    pengamat.observe([pengamat.dispute_event()], m)        # then B rejects the delivery
+
+    r = analis.reflect(m)
+    assert r["graded"] == 1 and r["false_approve"] == 1
+    assert r["changes"] == {"dispute_penalty": [25, 30], "approve_threshold": [70, 75]}
+    rubric = get_rubric(m)
+    assert rubric["version"] == 2 and rubric["history"][-1]["changes"] == r["changes"]
+
+    analis.run(m)                                          # the new doctrine applies
+    assert makelar.decide(pengamat.KLIEN_B, 50, m)["score"] == 20   # 50 - 30
+    assert analis.reflect(m)["changes"] == {}              # same evidence, no double count
+
+
+def test_ask_as_of_replays_the_journal(m):
+    """Time travel: the verdict as it stood before the dispute landed."""
+    import time
+    from datetime import datetime, timezone
+    from neraca import analis, makelar, pengamat
+
+    pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
+    time.sleep(0.01)
+    cut = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    time.sleep(0.01)
+    pengamat.observe([pengamat.dispute_event()], m)
+    analis.run(m)
+
+    now = makelar.decide(pengamat.KLIEN_B, 50, m)
+    then = makelar.decide(pengamat.KLIEN_B, 50, m, as_of=cut)
+    assert now["verdict"] == makelar.DECLINE
+    assert then["verdict"] == makelar.APPROVE_WITH_GUARANTEE and then["as_of"] == cut
+    assert len(makelar.evidence(pengamat.KLIEN_B, m, as_of=cut)) == 3   # the rejection is after the cut
+    # a replay opens no negotiation and journals no verdict
+    assert m.get_state(f"negotiation:{pengamat.KLIEN_B}")["body"]["verdict"] == makelar.DECLINE
+
+
+def test_search_spans_tiers(m):
+    from neraca import analis, pengamat
+    from neraca.memory import search
+    analis.run(seeded(m))
+    hits = search(m, "sim-b1")
+    assert hits and any("sim-b1" in json_dumps(h) for h in hits)
+
+
+def json_dumps(x):
+    import json
+    return json.dumps(x, default=str)
+
+
+def test_storefront_is_priced_by_memory(m):
+    """The quote grows with what the bureau remembers; the status page renders memory."""
+    from fastapi.testclient import TestClient
+    from neraca import analis, pengamat
+    from neraca.server import app, quote
+
+    c = TestClient(app)
+    assert quote("0xnobody", m) == 0.01                    # blind: cheapest
+    analis.run(seeded(m))
+    assert quote(pengamat.KLIEN_B, m) == 0.05              # 4 remembered events
+    assert quote(pengamat.MAKELAR_ADDR, m) == 0.25         # capped
+    assert c.get(f"/quote/{pengamat.KLIEN_B}").json()["price_usd"] == 0.05
+    assert c.get(f"/risk/{pengamat.KLIEN_B}?budget=50").status_code == 402
+
+    page = c.get("/")
+    assert page.status_code == 200 and "text/html" in page.headers["content-type"]
+    assert pengamat.KLIEN_B in page.text and 'id="profiles"' in page.text
