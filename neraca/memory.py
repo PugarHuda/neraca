@@ -6,7 +6,9 @@ Judges: this file is where memory is load-bearing (see README).
 
 import json
 import os
+import re
 
+from eth_utils import to_checksum_address
 from sibyl_memory_client import MemoryClient
 
 RUBRIC_KEY = "scoring-rubric"
@@ -29,6 +31,15 @@ DEFAULT_RUBRIC = {
 }
 
 JOB_PHASES = ("CREATED", "FUNDED", "DELIVERED", "COMPLETED", "REJECTED", "EXPIRED")
+
+_HEX40 = re.compile(r"^0x[0-9a-fA-F]{40}$")
+
+
+def norm(addr: str) -> str:
+    """One spelling per address at the memory boundary. A real EVM address is
+    checksummed; anything else (the demo's readable labels) passes through.
+    Without this, `ask 0xabc...` and `ask 0xABC...` are two strangers."""
+    return to_checksum_address(addr) if _HEX40.match(addr or "") else addr
 
 
 def db_path() -> str:
@@ -108,7 +119,7 @@ def record_settlement(m: MemoryClient, *, payer: str, payee: str, amount_usd: fl
         return None
     return m.write_event(
         acted=[f"observed x402 settlement {tx}"],
-        extra={"kind": "x402_settlement", "payer": payer, "payee": payee,
+        extra={"kind": "x402_settlement", "payer": norm(payer), "payee": norm(payee),
                "amount_usd": amount_usd, "tx": tx, "resource": resource},
     )
 
@@ -136,8 +147,8 @@ def record_job_event(
             "kind": "acp_job",
             "job_id": job_id,
             "phase": phase,
-            "client": client_addr,
-            "provider": provider,
+            "client": norm(client_addr),
+            "provider": norm(provider),
             "budget": budget,
             "tx": tx,
         },

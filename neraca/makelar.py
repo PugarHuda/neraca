@@ -5,7 +5,7 @@ risk, and with a different journal it gives a different answer. Every verdict
 it gives is journaled, so ANALIS can later grade it against what happened.
 """
 
-from .memory import client, get_rubric, job_events, settlement_events
+from .memory import client, get_rubric, job_events, norm, settlement_events
 
 APPROVE = "APPROVE"
 APPROVE_WITH_GUARANTEE = "APPROVE_WITH_GUARANTEE"
@@ -58,6 +58,7 @@ def decide(counterparty: str, budget: float, m=None, as_of: str | None = None) -
     """
     m = m or client()
     rubric = get_rubric(m)
+    counterparty = norm(counterparty)
 
     if as_of is not None:
         from .analis import build_profiles
@@ -74,7 +75,7 @@ def decide(counterparty: str, budget: float, m=None, as_of: str | None = None) -
         from .analis import build_profiles
         profile = build_profiles(job_events(m), rubric, settlement_events(m)).get(counterparty)
 
-    decision = _price(profile, counterparty, budget, rubric) | _known_as(counterparty, m)
+    decision = _price(profile, counterparty, budget, rubric) | _known_as(counterparty, m) | {"budget": budget}
     # HOT tier: the in-flight negotiation state this decision opens
     m.set_state(f"negotiation:{counterparty}", decision)
     # COLD tier: the verdict itself is an event, so the bureau can be graded on it
@@ -90,6 +91,7 @@ def decide(counterparty: str, budget: float, m=None, as_of: str | None = None) -
 def evidence(counterparty: str, m=None, as_of: str | None = None) -> list[dict]:
     """The raw remembered events behind a decision — cited on demand."""
     m = m or client()
+    counterparty = norm(counterparty)
     jobs = [e["extra"] | {"ts": e["ts"]} for e in job_events(m, until=as_of)
             if counterparty in (e["extra"]["client"], e["extra"]["provider"])]
     paid = [e["extra"] | {"ts": e["ts"]} for e in settlement_events(m, until=as_of)

@@ -30,7 +30,7 @@ from x402.mechanisms.evm.exact import register_exact_evm_server
 from x402.server import x402ResourceServer
 
 from . import makelar
-from .memory import (client, job_events, record_settlement, settlement_events,
+from .memory import (client, job_events, norm, record_settlement, settlement_events,
                      verdict_events)
 
 PAY_TO = os.environ.get("NERACA_PAY_TO", "0x0000000000000000000000000000000000000000")
@@ -45,12 +45,13 @@ app = FastAPI(title="NERACA risk bureau")
 def quote(counterparty: str, m=None) -> float:
     """What an answer costs is set by how much memory stands behind it."""
     m = m or client()
+    counterparty = norm(counterparty)
     n = sum(1 for e in job_events(m) if counterparty in (e["extra"]["client"], e["extra"]["provider"]))
     return round(min(BLIND_PRICE + PER_EVENT * n, PRICE_CAP), 2)
 
 
 def _counterparty(path: str) -> str:
-    return path.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1]
+    return norm(path.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1])
 
 
 def price_by_memory(ctx: HTTPRequestContext) -> str:
@@ -101,6 +102,7 @@ def risk(counterparty: str, budget: float = 10.0):
 def quote_endpoint(counterparty: str):
     """Free: what the answer would cost, and why."""
     m = client()
+    counterparty = norm(counterparty)
     n = sum(1 for e in job_events(m) if counterparty in (e["extra"]["client"], e["extra"]["provider"]))
     return {"counterparty": counterparty, "remembered_events": n, "price_usd": quote(counterparty, m),
             "policy": f"${BLIND_PRICE:.2f} blind + ${PER_EVENT:.2f} per remembered event, cap ${PRICE_CAP:.2f}"}

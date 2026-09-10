@@ -329,3 +329,34 @@ def test_directory_names_real_addresses_without_mixing_claims(m):
     assert d["known_as"] == "aixbt" and d["marketplace_claims"]["jobs"] == 32806
     assert d["score"] == 50            # 32,806 marketplace jobs bought it nothing: NERACA saw one CREATED
     assert "known_as" not in makelar.decide("0xClient", 50, m)
+
+
+def test_stake_refuses_when_memory_moved_since_the_negotiation(m, monkeypatch):
+    """An open negotiation is necessary, not sufficient. The dispute lands,
+    nobody re-asks, HOT still says APPROVE_WITH_GUARANTEE - the stake must not fire."""
+    import asyncio
+    from neraca import analis, makelar, onchain, pengamat
+    for k in ("NERACA_STAKE_KEY", "CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"):
+        monkeypatch.delenv(k, raising=False)
+    pengamat.observe(pengamat.sim_scenario(with_dispute=False), m)
+    analis.run(m)
+    assert makelar.decide(pengamat.KLIEN_B, 50, m)["verdict"] == makelar.APPROVE_WITH_GUARANTEE
+    pengamat.observe([pengamat.dispute_event()], m)
+    analis.run(m)
+    assert m.get_state(f"negotiation:{pengamat.KLIEN_B}")["body"]["verdict"] == makelar.APPROVE_WITH_GUARANTEE
+    with pytest.raises(SystemExit, match="memory moved"):
+        asyncio.run(onchain.stake_guarantee(pengamat.KLIEN_B, 1.0))
+
+
+def test_addresses_have_one_spelling(m):
+    """`ask 0xabc...` and `ask 0xABC...` are the same counterparty, not two strangers."""
+    from neraca import analis, makelar, pengamat
+    from neraca.server import quote
+    real = "0x5FaCEbD66D78A69b400dC702049374B95745FBc5"
+    pengamat.observe([dict(job_id="r1", phase="CREATED", client_addr="0xC1", provider=real.lower())], m)
+    analis.run(m)
+    assert makelar.decide(real.lower(), 50, m)["score"] == 50
+    assert makelar.decide(real.upper().replace("0X", "0x"), 50, m)["counterparty"] == real
+    assert len(makelar.evidence(real.lower(), m)) == 1
+    assert quote(real.lower(), m) == quote(real, m) == 0.02
+    assert makelar.decide(pengamat.KLIEN_B.lower(), 50, m)["verdict"] == makelar.NO_HISTORY  # labels are literal

@@ -107,13 +107,21 @@ async def wallet() -> dict:
 async def stake_guarantee(counterparty: str, amount_usdc: float) -> dict:
     """Send the guarantee stake (USDC, Base Sepolia) and journal it."""
     # memory gate first, on purpose: the refusal is demonstrable with no keys at all
-    from .memory import client
+    from . import makelar
+    from .memory import client, norm
     m = client()
-    state = m.get_state(f"negotiation:{counterparty}")
-    verdict = (state or {}).get("body", {}).get("verdict")
+    counterparty = norm(counterparty)
+    body = (m.get_state(f"negotiation:{counterparty}") or {}).get("body") or {}
+    verdict = body.get("verdict")
     if verdict != "APPROVE_WITH_GUARANTEE":
         raise SystemExit(f"no open APPROVE_WITH_GUARANTEE negotiation for {counterparty} "
                          f"(found: {verdict}) - the stake is priced by memory, not typed by hand")
+    # an open negotiation is necessary, not sufficient: memory may have moved
+    # since it opened. Re-decide against the journal as it stands right now.
+    fresh = makelar.decide(counterparty, body.get("budget") or amount_usdc, m)
+    if fresh["verdict"] != "APPROVE_WITH_GUARANTEE":
+        raise SystemExit(f"memory moved since the negotiation on {counterparty} opened: it now says "
+                         f"{fresh['verdict']} ({fresh['reasons']}) - refusing to stake on a stale verdict")
 
     amount = int(amount_usdc * 1_000_000)
     if os.environ.get("NERACA_STAKE_KEY"):
