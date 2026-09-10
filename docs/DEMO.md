@@ -32,7 +32,9 @@ python -m neraca watch
 #   [12:11:04] journal grew to 27 events - profiles rebuilt
 #        50  0xKLIENB...   68  0xKLIENA...   80  0xNERACA...
 
-# C - price both clients. Same budget, different premium, straight from memory:
+# C - WAIT for pane A to print its first "profiles rebuilt" line before this.
+#     Ask too early and there is no profile yet: the honest answer is NO_HISTORY.
+# Price both clients. Same budget, different premium, straight from memory:
 python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50
 #   -> APPROVE_WITH_GUARANTEE, counter 34.0, premium 1%    (68: six jobs funded and accepted)
 python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50
