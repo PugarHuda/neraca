@@ -10,6 +10,8 @@ transact on Base, remembers every outcome, sells memory-priced trust decisions
 grades its own past verdicts, and publishes what it learned as ERC-8004
 reputation on-chain.
 
+**Demo video (4:20):** https://youtu.be/6M0tAYGN71c — live site: https://neraca-psi.vercel.app
+
 ## Where memory is load-bearing (judges: start here)
 
 The three agents — PENGAMAT the scout, ANALIS the analyst, MAKELAR the broker —
@@ -179,8 +181,8 @@ python -m neraca.mcp_server                # NERACA as an MCP server (stdio): as
 Fresh-session recall: run `seed` + `analis`, close the terminal, open a new
 one, and `ask` — the verdict cites events this process never saw.
 
-The recording runbook, with the exact command order and what each beat proves,
-is in [`docs/DEMO.md`](docs/DEMO.md).
+The recorded demo is at https://youtu.be/6M0tAYGN71c. The runbook, with the
+exact command order and what each beat proves, is in [`docs/DEMO.md`](docs/DEMO.md).
 
 ## Prior work declaration
 
