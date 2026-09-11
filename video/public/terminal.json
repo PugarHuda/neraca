@@ -1,0 +1,435 @@
+[
+ {
+  "t": 0.5,
+  "kind": "say",
+  "text": "NERACA - a trust bureau for the agent economy."
+ },
+ {
+  "t": 3.0,
+  "kind": "say",
+  "text": "Agents hire each other on Virtuals ACP and settle USDC on Base. Nothing remembers who burned whom."
+ },
+ {
+  "t": 6.0,
+  "kind": "stamp",
+  "text": "commit 4ee80e4   2026-09-11 01:22:27 UTC"
+ },
+ {
+  "t": 12.0,
+  "kind": "say",
+  "text": "Three agents, one shared Sibyl Memory, no other channel. PENGAMAT journals 27 observations:"
+ },
+ {
+  "t": 13.5,
+  "kind": "cmd",
+  "text": "python -m neraca seed --before-dispute",
+  "session": null
+ },
+ {
+  "t": 14.4,
+  "kind": "out",
+  "lines": [
+   "journaled 27 new observations"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 18.0,
+  "kind": "cmd",
+  "text": "python -m neraca analis",
+  "session": null
+ },
+ {
+  "t": 18.9,
+  "kind": "out",
+  "lines": [
+   " 50  0xKLIENB000000000000000000000000000000000B  ok=0 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 68  0xKLIENA000000000000000000000000000000000A  ok=6 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 80  0xNERACA00000000000000000000000000000000AA  ok=6 disputes=0 rejected_on=0 expired=0 paid=0"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 24.0,
+  "kind": "say",
+  "text": "Same budget, two clients. The premium comes straight from what memory holds."
+ },
+ {
+  "t": 25.5,
+  "kind": "cmd",
+  "text": "python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50",
+  "session": null
+ },
+ {
+  "t": 26.4,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"verdict\": \"APPROVE_WITH_GUARANTEE\",",
+   "  \"counter_budget\": 34.0,",
+   "  \"premium_pct\": 1.0,",
+   "  \"counterparty\": \"0xKLIENA000000000000000000000000000000000A\",",
+   "  \"score\": 68,",
+   "  \"reasons\": [",
+   "    \"funded and accepted job sim-a4\",",
+   "    \"funded and accepted job sim-a5\",",
+   "    \"funded and accepted job sim-a6\"",
+   "  ],",
+   "  \"budget\": 50.0",
+   "}"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 33.0,
+  "kind": "cmd",
+  "text": "python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50",
+  "session": null
+ },
+ {
+  "t": 33.9,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"verdict\": \"APPROVE_WITH_GUARANTEE\",",
+   "  \"counter_budget\": 25.0,",
+   "  \"premium_pct\": 10.0,",
+   "  \"counterparty\": \"0xKLIENB000000000000000000000000000000000B\",",
+   "  \"score\": 50,",
+   "  \"reasons\": [",
+   "    \"clean but thin history\"",
+   "  ],",
+   "  \"budget\": 50.0",
+   "}"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 42.0,
+  "kind": "say",
+  "text": "Now PENGAMAT witnesses ONE event: KLIEN-B rejects a delivered job."
+ },
+ {
+  "t": 43.5,
+  "kind": "cmd",
+  "text": "python -m neraca witness",
+  "session": null
+ },
+ {
+  "t": 44.4,
+  "kind": "out",
+  "lines": [
+   "PENGAMAT journaled 1 new observation (REJECTED sim-b1) - rerun `analis` to see the score move"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 48.0,
+  "kind": "cmd",
+  "text": "python -m neraca analis",
+  "session": null
+ },
+ {
+  "t": 48.9,
+  "kind": "out",
+  "lines": [
+   " 25  0xKLIENB000000000000000000000000000000000B  ok=0 disputes=1 rejected_on=0 expired=0 paid=0",
+   " 68  0xKLIENA000000000000000000000000000000000A  ok=6 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 75  0xNERACA00000000000000000000000000000000AA  ok=6 disputes=0 rejected_on=1 expired=0 paid=0"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 53.0,
+  "kind": "cmd",
+  "text": "python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50",
+  "session": null
+ },
+ {
+  "t": 53.9,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"verdict\": \"DECLINE\",",
+   "  \"counter_budget\": 0,",
+   "  \"premium_pct\": null,",
+   "  \"counterparty\": \"0xKLIENB000000000000000000000000000000000B\",",
+   "  \"score\": 25,",
+   "  \"reasons\": [",
+   "    \"rejected delivered job sim-b1\"",
+   "  ],",
+   "  \"budget\": 50.0",
+   "}"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 62.0,
+  "kind": "say",
+  "text": "The code did not change. The memory did."
+ },
+ {
+  "t": 66.0,
+  "kind": "say",
+  "text": "Fresh session: a NEW process that never saw the rejection."
+ },
+ {
+  "t": 68.0,
+  "kind": "stamp",
+  "text": "new session \u00b7 pid 13392 \u00b7 commit 4ee80e4   2026-09-11 01:22:29 UTC"
+ },
+ {
+  "t": 71.0,
+  "kind": "cmd",
+  "text": "python -m neraca ask 0xKLIENB000000000000000000000000000000000B --budget 50",
+  "session": "fresh"
+ },
+ {
+  "t": 71.9,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"verdict\": \"DECLINE\",",
+   "  \"counter_budget\": 0,",
+   "  \"premium_pct\": null,",
+   "  \"counterparty\": \"0xKLIENB000000000000000000000000000000000B\",",
+   "  \"score\": 25,",
+   "  \"reasons\": [",
+   "    \"rejected delivered job sim-b1\"",
+   "  ],",
+   "  \"budget\": 50.0",
+   "}"
+  ],
+  "exit": 0,
+  "session": "fresh"
+ },
+ {
+  "t": 82.0,
+  "kind": "cmd",
+  "text": "python -m neraca report 0xKLIENB000000000000000000000000000000000B",
+  "session": "fresh"
+ },
+ {
+  "t": 82.9,
+  "kind": "out",
+  "lines": [
+   "{\"kind\": \"acp_job\", \"job_id\": \"sim-b1\", \"phase\": \"CREATED\", \"client\": \"0xKLIENB000000000000000000000000000000000B\", \"provider\": \"0xNERACA00000000000000000000000000000000AA\", \"budget\": 50.0, \"tx\": null, \"ts\": \"2026-09-11T01:22:27.633Z\"}",
+   "{\"kind\": \"acp_job\", \"job_id\": \"sim-b1\", \"phase\": \"FUNDED\", \"client\": \"0xKLIENB000000000000000000000000000000000B\", \"provider\": \"0xNERACA00000000000000000000000000000000AA\", \"budget\": 50.0, \"tx\": null, \"ts\": \"2026-09-11T01:22:27.639Z\"}",
+   "{\"kind\": \"acp_job\", \"job_id\": \"sim-b1\", \"phase\": \"DELIVERED\", \"client\": \"0xKLIENB000000000000000000000000000000000B\", \"provider\": \"0xNERACA00000000000000000000000000000000AA\", \"budget\": 50.0, \"tx\": null, \"ts\": \"2026-09-11T01:22:27.647Z\"}",
+   "{\"kind\": \"acp_job\", \"job_id\": \"sim-b1\", \"phase\": \"REJECTED\", \"client\": \"0xKLIENB000000000000000000000000000000000B\", \"provider\": \"0xNERACA00000000000000000000000000000000AA\", \"budget\": 50.0, \"tx\": null, \"ts\": \"2026-09-11T01:22:28.892Z\"}"
+  ],
+  "exit": 0,
+  "session": "fresh"
+ },
+ {
+  "t": 94.0,
+  "kind": "say",
+  "text": "It cites the rejection anyway. That is the gate."
+ },
+ {
+  "t": 100.0,
+  "kind": "say",
+  "text": "The deletion test. No memory, no bureau - there is nothing to fall back to:"
+ },
+ {
+  "t": 101.5,
+  "kind": "cmd",
+  "text": "NERACA_MEMORY_DISABLED=1 python -m neraca ask 0xKLIENB\u2026B --budget 50; echo exit=$?",
+  "session": null
+ },
+ {
+  "t": 102.4,
+  "kind": "out",
+  "lines": [
+   "NERACA: memory layer disabled - no memory, no bureau.",
+   "The Sibyl Memory layer is load-bearing; there is nothing to fall back to.",
+   "exit=1"
+  ],
+  "exit": 1,
+  "session": null
+ },
+ {
+  "t": 110.0,
+  "kind": "say",
+  "text": "The bureau grades its own verdicts and revises its doctrine - the rubric lives in REFERENCE memory:"
+ },
+ {
+  "t": 111.5,
+  "kind": "cmd",
+  "text": "python -m neraca reflect",
+  "session": null
+ },
+ {
+  "t": 112.4,
+  "kind": "out",
+  "lines": [
+   "graded 1 verdict(s): 1 false approve, 0 false decline",
+   "   false_approve  APPROVE_WITH_GUARANTEE 0xKLIENB000000000000000000000000000000000B  then ['REJECTED']",
+   "doctrine revised -> rubric v2: dispute_penalty 25->30, approve_threshold 70->75",
+   "rerun `analis`: every profile is rescored under the new rubric"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 120.0,
+  "kind": "cmd",
+  "text": "python -m neraca analis",
+  "session": null
+ },
+ {
+  "t": 120.9,
+  "kind": "out",
+  "lines": [
+   " 20  0xKLIENB000000000000000000000000000000000B  ok=0 disputes=1 rejected_on=0 expired=0 paid=0"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 126.0,
+  "kind": "cmd",
+  "text": "python -m neraca reflect",
+  "session": null
+ },
+ {
+  "t": 126.9,
+  "kind": "out",
+  "lines": [
+   "doctrine holds - nothing to revise"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 132.0,
+  "kind": "say",
+  "text": "Selling the answer. The USDC stake is gated by memory: refused for KLIEN-B, fired for KLIEN-A."
+ },
+ {
+  "t": 133.5,
+  "kind": "cmd",
+  "text": "python -m neraca.onchain stake 0xKLIENB\u2026B 1.0",
+  "session": null
+ },
+ {
+  "t": 134.4,
+  "kind": "out",
+  "lines": [
+   "no open APPROVE_WITH_GUARANTEE negotiation for 0xKLIENB000000000000000000000000000000000B (found: DECLINE) - the stake is priced by memory, not typed by hand"
+  ],
+  "exit": 1,
+  "session": null
+ },
+ {
+  "t": 140.0,
+  "kind": "cmd",
+  "text": "python -m neraca ask 0xKLIENA000000000000000000000000000000000A --budget 50",
+  "session": null
+ },
+ {
+  "t": 140.9,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"verdict\": \"APPROVE_WITH_GUARANTEE\",",
+   "  \"counter_budget\": 34.0,",
+   "  \"premium_pct\": 3.5,"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 146.0,
+  "kind": "cmd",
+  "text": "python -m neraca.onchain stake 0xKLIENA\u2026A 1.0",
+  "session": null
+ },
+ {
+  "t": 146.9,
+  "kind": "out",
+  "lines": [
+   "{",
+   "  \"tx\": \"0x6d21367449a45e372047109c25b6b3e8de541f80cad3949dea14179c463fe89e\",",
+   "  \"explorer\": \"https://sepolia.basescan.org/tx/0x6d21367449a45e372047109c25b6b3e8de541f80cad3949dea14179c463fe89e\",",
+   "  \"from\": \"0x39D2bae5EAedA9283535dDC98F1991c81eD5Cd7E\",",
+   "  \"vault\": \"0x6505E94b711c99BF2816db59aB36c243f529BfD1\",",
+   "  \"amount_usdc\": 1.0",
+   "}"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 172.0,
+  "kind": "say",
+  "text": "Real agents, real jobs: PENGAMAT reads the live ACP contracts on Base mainnet. No keys."
+ },
+ {
+  "t": 173.5,
+  "kind": "cmd",
+  "text": "python -m neraca chain --lookback 4000",
+  "session": null
+ },
+ {
+  "t": 174.4,
+  "kind": "out",
+  "lines": [
+   "PENGAMAT read Base mainnet blocks 51146206..51150206: 5 jobs created, 0 phase updates, 0 memos signed -> 5 new observations (cursor saved in HOT memory)"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 186.0,
+  "kind": "cmd",
+  "text": "python -m neraca analis",
+  "session": null
+ },
+ {
+  "t": 186.9,
+  "kind": "out",
+  "lines": [
+   " 20  0xKLIENB000000000000000000000000000000000B  ok=0 disputes=1 rejected_on=0 expired=0 paid=0",
+   " 50  0x9BD0D0252A77FfDebfD5138977aA7ae5015Fe288  ok=0 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 50  0x20666Dc7d6354BD8069Eff1109a86DD334cD6843  ok=0 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 50  0x7116Cd2205c9B39159dd8ac1160c37e10EcA7C09  ok=0 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 50  0xd478a8B40372db16cA8045F28C6FE07228F3781A  ok=0 disputes=0 rejected_on=0 expired=0 paid=0",
+   " 68  0xKLIENA000000000000000000000000000000000A  ok=6 disputes=0 rejected_on=0 expired=0 paid=0"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 194.0,
+  "kind": "say",
+  "text": "21 tests, one of them the deletion test judges run themselves."
+ },
+ {
+  "t": 195.5,
+  "kind": "cmd",
+  "text": "python -m pytest -q",
+  "session": null
+ },
+ {
+  "t": 196.4,
+  "kind": "out",
+  "lines": [
+   "21 passed, 2 warnings in 8.30s"
+  ],
+  "exit": 0,
+  "session": null
+ },
+ {
+  "t": 212.0,
+  "kind": "stamp",
+  "text": "commit 4ee80e4   2026-09-11 01:22:52 UTC"
+ }
+]
